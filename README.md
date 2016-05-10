@@ -1,3 +1,4 @@
 # MCMC_Conv_code
 
-Testing to see if making and editing things will work
+This is a python code written to make Radmc3d disk models and then compare them with data 
+for various parameters using emcee.
