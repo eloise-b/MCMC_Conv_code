@@ -1,7 +1,7 @@
 """Script to do convolve rotate model, over the grid of models that has been created.
 
 Example line:
-lnprob_conv_disk_radmc3d([log(.005),log(1e-2),log(10),log(22),50,129])
+lnprob_conv_disk_radmc3d([log(0.006894),log(1.553e-8),log(3.012e-3),log(11.22),log(22.13),48.85,129.5],remove_directory=False)
 
 Once MCMC is run, you need to save the chain. e.g. 
 
@@ -26,7 +26,6 @@ from __future__ import print_function, division
 import scipy.ndimage as nd
 import numpy as np
 import emcee
-#from emcee.utils import MPIPool
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -39,11 +38,15 @@ import shutil
 from keck_tools import *
 import pickle
 #import time
-#from mpi4py import MPI
 import multiprocessing
 
+#def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',nphot="long(4e4)",\
+#    nphot_scat="long(2e4)", r_dust='0.3*au', xbound=x_bound, nx=n_x, remove_directory=True):
+#Need xbound and nx to not be defined up here for it to work, I'm not sure that leaving them
+#out is the correct way to go about it though.
+
 def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',nphot="long(4e4)",\
-    nphot_scat="long(2e4)", r_dust='0.3*au', xbound="[0.3*au,1.0*au,100.0*au]", nx=[50,50]):
+    nphot_scat="long(2e4)", r_dust='0.3*au', remove_directory=True):
     """Return the logarithm of the probability that a disk model fits the data, given model
     parameters x.
     
@@ -62,7 +65,6 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     
     params = {'dtog':np.exp(x[0]),'gap_depletion_1':np.exp(x[1]),'gap_depletion_2':np.exp(x[2]),\
                 'r_in':np.exp(x[3]),'r_wall':np.exp(x[4]),'inc':x[5],'pa':x[6]}
-    
 
     #Target images.
     tgt_ims = pyfits.getdata(filename,0)
@@ -88,9 +90,6 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
 
     #Create our working directory
     pid_str = str(os.getpid())
-    #comm = MPI.COMM_WORLD
-    #pid_str = str(comm.Get_rank())
-    
     print("AAAAA " + pid_str)
     shutil.rmtree(pid_str, ignore_errors=True)
     #time.sleep(10)
@@ -107,12 +106,16 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     gapin  = '[0*au, {0:7.3f}*au, {1:7.3f}*au]'.format(params['r_in'],params['r_wall'])
     gapout = '[{0:7.3f}*au, {1:7.3f}*au, 60*au]'.format(params['r_in'],params['r_wall'])
     gap_depletion = '[{0:10.3e}, {1:10.3e}, 1e-1]'.format(params['gap_depletion_1'],params['gap_depletion_2'])
+    r_d = 0.3 #Same as r_dust, but without the *au so that the format is correct for xbound
+    x_bound = '[{0:7.3f}*au, ({0:7.3f}+0.1)*au, {1:7.3f}*au, {1:7.3f}*1.1*au, {2:7.3f}*au, {2:7.3f}*1.1*au, 100*au]'.format(r_d,params['r_in'],params['r_wall'])
+    n_x = [20., 30., 10., 20., 10., 30.]
     
     #edit the problem parameter file
     r3.setup.problemSetupDust('ppdisk', binary=False, mstar='[2.0*ms]', tstar='[9000.0]',\
                                  dustkappa_ext=['carbon'], gap_rin=gapin, gap_rout=gapout,\
                                  gap_drfact=gap_depletion, dusttogas=params['dtog'], \
-                                 rin=r_dust,nphot=nphot,nphot_scat=nphot_scat, nx=nx, xbound=xbound)
+                                 rin=r_dust,nphot=nphot,nphot_scat=nphot_scat, \
+                                 nx=n_x, xbound=x_bound)
                             
     # run the thermal monte carlo
     os.system('radmc3d mctherm > mctherm.out') #Dodgy - fix this to a radmc3d output.
@@ -146,7 +149,9 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
                     
     #Clean up 
     #shutil.rmtree(pid_str, ignore_errors=True)
-    shutil.rmtree(pid_str)
+    
+    if remove_directory:
+        shutil.rmtree(pid_str)
     
     #Return log likelihood
     lnlike = -0.5*chi_tot/temperature
@@ -170,7 +175,7 @@ if __name__ == "__main__":
     print('nwalkers=',nwalkers)
     threads = multiprocessing.cpu_count()
     ipar = np.array([np.log(.005),np.log(1e-4),np.log(1e-2),np.log(10),np.log(23),50,129])
-    ipar_sig = np.array([.1,.1,.1,.1,.1,1,1])
+    ipar_sig = np.array([.1,.3,.1,.01,.01,1,1])
     ndim = len(ipar)
     #Could use parameters of random.normal instead of below. But Mike likes this way.
     p0 = [ipar + np.random.normal(size=ndim)*ipar_sig for i in range(nwalkers)]
