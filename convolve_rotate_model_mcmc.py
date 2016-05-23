@@ -118,7 +118,7 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
                                  nx=n_x, xbound=x_bound)
                             
     # run the thermal monte carlo
-    os.system('radmc3d mctherm > mctherm.out') #Dodgy - fix this to a radmc3d output.
+    os.system('radmc3d mctherm > mctherm.out') 
     #Create the image
     npix_mod = 256
     r3.image.makeImage(npix=npix_mod, sizeau=0.6*npix_mod, wav=3.776, incl=params['inc'], posang=0.)
@@ -174,7 +174,7 @@ if __name__ == "__main__":
     nwalkers = 14
     print('nwalkers=',nwalkers)
     threads = multiprocessing.cpu_count()
-    ipar = np.array([np.log(.005),np.log(1e-4),np.log(1e-2),np.log(10),np.log(23),50,129])
+    ipar = np.array([np.log(6.894e-3),np.log(1.553e-8),np.log(3.012e-3),np.log(11.22),np.log(22.13),48.85,129.5])
     ipar_sig = np.array([.1,.3,.1,.01,.01,1,1])
     ndim = len(ipar)
     #Could use parameters of random.normal instead of below. But Mike likes this way.
@@ -182,10 +182,10 @@ if __name__ == "__main__":
     #sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_conv_disk_radmc3d,pool=pool)
     sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_conv_disk_radmc3d,threads=threads)
     #sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_conv_disk_radmc3d, args=[temperature=170.0])
-    sampler.run_mcmc(p0,10)
+    sampler.run_mcmc(p0,2000)
     #pool.close
     
-    chainfile = open('chainfile_test.pkl','w')
+    chainfile = open('chainfile.pkl','w')
     pickle.dump((sampler.lnprobability,sampler.chain),chainfile)
     chainfile.close()
 
