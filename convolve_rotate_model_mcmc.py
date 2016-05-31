@@ -40,10 +40,7 @@ import pickle
 #import time
 import multiprocessing
 
-#def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',nphot="long(4e4)",\
-#    nphot_scat="long(2e4)", r_dust='0.3*au', xbound=x_bound, nx=n_x, remove_directory=True):
-#Need xbound and nx to not be defined up here for it to work, I'm not sure that leaving them
-#out is the correct way to go about it though.
+
 
 def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',nphot="long(4e4)",\
     nphot_scat="long(2e4)", r_dust='0.3*au', remove_directory=True):
@@ -174,18 +171,28 @@ if __name__ == "__main__":
     nwalkers = 14
     print('nwalkers=',nwalkers)
     threads = multiprocessing.cpu_count()
-    ipar = np.array([np.log(6.894e-3),np.log(1.553e-8),np.log(3.012e-3),np.log(11.22),np.log(22.13),48.85,129.5])
-    ipar_sig = np.array([.1,.3,.1,.01,.01,1,1])
+    #ipar = np.array([np.log(6.894e-3),np.log(1.553e-8),np.log(3.012e-3),np.log(11.22),np.log(22.13),48.85,129.5])
+    # load in the results from the previous chain and use it as a starting point
+    c = open('chainfile.pkl','r')
+    old_prob,old_chain = pickle.load(c)
+    c.close()
+    #define starting point as the last model of the last thread from the previous mcmc
+    ipar = old_chain[-1,-1]
+    #make the starting cloud smaller
+    ipar_sig = np.array([.01,.03,.01,.001,.001,0.1,0.1])
     ndim = len(ipar)
     #Could use parameters of random.normal instead of below. But Mike likes this way.
     p0 = [ipar + np.random.normal(size=ndim)*ipar_sig for i in range(nwalkers)]
     #sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_conv_disk_radmc3d,pool=pool)
+    #sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_conv_disk_radmc3d,threads=threads, args=[old_chain, old_prob])
     sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_conv_disk_radmc3d,threads=threads)
+    #sampler.lnprobability = old_prob
+    #sampler.chain = old_chain
     #sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_conv_disk_radmc3d, args=[temperature=170.0])
-    sampler.run_mcmc(p0,2000)
+    sampler.run_mcmc(p0,20)
     #pool.close
     
-    chainfile = open('chainfile.pkl','w')
+    chainfile = open('chainfile_cont.pkl','w')
     pickle.dump((sampler.lnprobability,sampler.chain),chainfile)
     chainfile.close()
 
