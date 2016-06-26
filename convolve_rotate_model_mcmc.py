@@ -148,7 +148,7 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     model_chi_txt = ''
     
     #This line call Keck tools
-    chi_tot = rotate_and_fit(im, params['pa'],cal_ims_ft,tgt_ims, model_type, model_chi_txt)
+    chi_tot = rotate_and_fit(im, params['pa'],cal_ims_ft,tgt_ims, model_type, model_chi_txt,plot_ims=False)
     
     #This is "cd .."
     os.chdir(os.pardir)
