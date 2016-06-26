@@ -39,11 +39,11 @@ from keck_tools import *
 import pickle
 #import time
 import multiprocessing
-
+from add_planet import *
 
 
 def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',nphot="long(4e4)",\
-    nphot_scat="long(2e4)", r_dust='0.3*au', remove_directory=True):
+    nphot_scat="long(2e4)", r_dust='0.3*au', remove_directory=True, planet=True):
     """Return the logarithm of the probability that a disk model fits the data, given model
     parameters x.
     
@@ -60,9 +60,12 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
         
     """
     
+#    params = {'dtog':np.exp(x[0]),'gap_depletion_1':np.exp(x[1]),'gap_depletion_2':np.exp(x[2]),\
+#                'r_in':np.exp(x[3]),'r_wall':np.exp(x[4]),'inc':x[5],'pa':x[6]}
     params = {'dtog':np.exp(x[0]),'gap_depletion_1':np.exp(x[1]),'gap_depletion_2':np.exp(x[2]),\
-                'r_in':np.exp(x[3]),'r_wall':np.exp(x[4]),'inc':x[5],'pa':x[6]}
-
+                'r_in':np.exp(x[3]),'r_wall':np.exp(x[4]),'inc':x[5],'pa':x[6],'x0':x[7],'y0':x[8],\
+                'fwhm':np.exp(x[9]),'height':np.exp(x[10])}
+                
     #Target images.
     tgt_ims = pyfits.getdata(filename,0)
     ntgt = tgt_ims.shape[0] #Number of target images.
@@ -121,16 +124,21 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     r3.image.makeImage(npix=npix_mod, sizeau=0.6*npix_mod, wav=3.776, incl=params['inc'], posang=0.)
 
     #--- Parameters that are the same every time in the PA loop ---
-    imag_obj = r3.image.readImage('image.out')
-    im = imag_obj.image[:,:,0]
 
+    
+    if planet: 
+        image = planet_in_disk(size=npix_mod,x0=params['x0'],y0=params['y0'],fwhm=params['fwhm'],height=params['height'])
+    else:
+        imag_obj = r3.image.readImage('image.out')
+        image = imag_obj.image[:,:,0]
+    
     #!!! Warning the central source flux changes a little. Maybe it is best to start 
     #with a (slightly) convolved image. Play with this!
-
+    
     #Gaussian kernel
     kernel = np.array([[.25,.5,.25],[.5,1,.5],[.25,.5,.25]])
     kernel /= np.sum(kernel)
-    im = nd.filters.convolve(im,kernel)                    
+    im = nd.filters.convolve(image,kernel)                    
 
     #Inclination angle, detailed disk properties can only come from RADMC-3D
     #Pa to add to the model image PA. Note that this is instrument (not sky) PA.
@@ -139,6 +147,7 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     model_type = str(params['dtog']) + ',' + str(params['gap_depletion_1']) + ',' + str(params['gap_depletion_2']) + ',' + str(params['r_in']) + ',' + str(params['r_wall']) + ',' + str(params['inc']) + ',' + str(params['pa'])
     model_chi_txt = ''
     
+    #This line call Keck tools
     chi_tot = rotate_and_fit(im, params['pa'],cal_ims_ft,tgt_ims, model_type, model_chi_txt)
     
     #This is "cd .."
@@ -168,18 +177,18 @@ if __name__ == "__main__":
     #    sys.exit(0)
     #comm = MPI.COMM_WORLD
     #nwalkers = comm.Get_size()
-    nwalkers = 14
+    nwalkers = 22
     print('nwalkers=',nwalkers)
     threads = multiprocessing.cpu_count()
-    #ipar = np.array([np.log(6.894e-3),np.log(1.553e-8),np.log(3.012e-3),np.log(11.22),np.log(22.13),48.85,129.5])
+    ipar = np.array([np.log(6.894e-3),np.log(1.553e-8),np.log(3.012e-3),np.log(11.22),np.log(22.13),48.85,129.5,103.,128.,np.log(0.3),np.log(1e-9)])
     # load in the results from the previous chain and use it as a starting point
-    c = open('chainfile.pkl','r')
-    old_prob,old_chain = pickle.load(c)
-    c.close()
+    #c = open('chainfile.pkl','r')
+    #old_prob,old_chain = pickle.load(c)
+    #c.close()
     #define starting point as the last model of the last thread from the previous mcmc
-    ipar = old_chain[-1,-1]
+    #ipar = old_chain[-1,-1]
     #make the starting cloud smaller
-    ipar_sig = np.array([.01,.03,.01,.001,.001,0.1,0.1])
+    ipar_sig = np.array([.01,.03,.01,.01,.01,0.1,0.1,0.1,0.1,0.1,0.1])
     ndim = len(ipar)
     #Could use parameters of random.normal instead of below. But Mike likes this way.
     p0 = [ipar + np.random.normal(size=ndim)*ipar_sig for i in range(nwalkers)]
@@ -189,7 +198,7 @@ if __name__ == "__main__":
     #sampler.lnprobability = old_prob
     #sampler.chain = old_chain
     #sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_conv_disk_radmc3d, args=[temperature=170.0])
-    sampler.run_mcmc(p0,20)
+    sampler.run_mcmc(p0,1500)
     #pool.close
     
     chainfile = open('chainfile_cont.pkl','w')

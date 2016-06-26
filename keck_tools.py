@@ -15,7 +15,7 @@ from os.path import exists
 #plt.ion()
 
 #-------------------------------------------------------------------------------------
-def rotate_and_fit(im, p,cal_ims_ft,tgt_ims,model_type, model_chi_txt=''):
+def rotate_and_fit(im, p,cal_ims_ft,tgt_ims,model_type, model_chi_txt='',plot_ims=True):
     """Rotate a model image, and find the best fit. Output (for now!) 
     goes to file in the current directory.
     
@@ -91,22 +91,24 @@ def rotate_and_fit(im, p,cal_ims_ft,tgt_ims,model_type, model_chi_txt=''):
         best_chi2s[n] = chi_squared[n,best_conv]
         best_model_ims[n] = ims_shifted[best_conv]
         best_convs[n] = best_conv
-        #plot the best model images
-        #plt.imshow(best_model_ims[n], interpolation='nearest')
-        #im_name = 'model_im_' + str(n) + '.png'
-        #plt.savefig(im_name)
-        #plt.clf()
-        #plt.imshow(np.arcsinh(best_model_ims[n]), interpolation='nearest',cmap=cm.cubehelix, clim = (3.0,15.0))
-        #plt.colorbar()
-        #stretch_name = 'model_stretch_' + str(n) + '.png'
-        #plt.savefig(stretch_name)
-        #plt.clf()
-        #plt.imshow(tgt_ims[n]-best_model_ims[n], interpolation='nearest',cmap=cm.cubehelix)
-        #plt.colorbar()
-        #stretch_name = 'target-model_' + str(n) + '.png'
-        #plt.savefig(stretch_name)
-        #plt.clf()
-        #generate_images(best_model_ims,n)
+        
+        if plot_ims:
+            #plot the best model images
+            plt.imshow(best_model_ims[n], interpolation='nearest')
+            im_name = 'model_im_' + str(n) + '.png'
+            plt.savefig(im_name)
+            plt.clf()
+            plt.imshow(np.arcsinh(best_model_ims[n]), interpolation='nearest',cmap=cm.cubehelix, clim = (3.0,15.0))
+            plt.colorbar()
+            stretch_name = 'model_stretch_' + str(n) + '.png'
+            plt.savefig(stretch_name)
+            plt.clf()
+            plt.imshow(tgt_ims[n]-best_model_ims[n], interpolation='nearest',cmap=cm.cubehelix)
+            plt.colorbar()
+            stretch_name = 'target-model_' + str(n) + '.png'
+            plt.savefig(stretch_name)
+            plt.clf()
+            #generate_images(best_model_ims,n)
 
     #save best_chi2s
     #np.savetxt('best_chi2s.txt', best_chi2s)
