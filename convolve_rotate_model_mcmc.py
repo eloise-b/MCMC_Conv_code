@@ -43,7 +43,7 @@ from add_planet import *
 
 
 def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',nphot="long(4e4)",\
-    nphot_scat="long(2e4)", r_dust='0.3*au', remove_directory=True, planet=True):
+    nphot_scat="long(2e4)", remove_directory=True, asymmetry=True planet=False):
     """Return the logarithm of the probability that a disk model fits the data, given model
     parameters x.
     
@@ -63,8 +63,9 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
 #    params = {'dtog':np.exp(x[0]),'gap_depletion_1':np.exp(x[1]),'gap_depletion_2':np.exp(x[2]),\
 #                'r_in':np.exp(x[3]),'r_wall':np.exp(x[4]),'inc':x[5],'pa':x[6]}
     params = {'dtog':np.exp(x[0]),'gap_depletion_1':np.exp(x[1]),'gap_depletion_2':np.exp(x[2]),\
-                'r_in':np.exp(x[3]),'r_wall':np.exp(x[4]),'inc':x[5],'pa':x[6],'x0':x[7],'y0':x[8],\
-                'fwhm':np.exp(x[9]),'height':np.exp(x[10])}
+               'r_in':np.exp(x[3]),'r_wall':np.exp(x[4]),'inc':x[5],'pa':x[6],'star_x':x[7],'star_y':x[8],\
+                'star_temp':np.exp(x[9]),'planet_x':x[10], 'planet_y':x[11],'planet_temp':np.exp(x[12]),\
+                'planet_r':np.exp(x[13])}
                 
     #Target images.
     tgt_ims = pyfits.getdata(filename,0)
@@ -103,19 +104,29 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     r3.analyze.writeDefaultParfile('ppdisk')
     
     #Convert parameters to RadMC3D strings
+    r_in = '{0:7.3f}*au'.format(params['r_in'])
     gapin  = '[0*au, {0:7.3f}*au, {1:7.3f}*au]'.format(params['r_in'],params['r_wall'])
     gapout = '[{0:7.3f}*au, {1:7.3f}*au, 60*au]'.format(params['r_in'],params['r_wall'])
     gap_depletion = '[{0:10.3e}, {1:10.3e}, 1e-1]'.format(params['gap_depletion_1'],params['gap_depletion_2'])
-    r_d = 0.3 #Same as r_dust, but without the *au so that the format is correct for xbound
-    x_bound = '[{0:7.3f}*au, ({0:7.3f}+0.1)*au, {1:7.3f}*au, {1:7.3f}*1.1*au, {2:7.3f}*au, {2:7.3f}*1.1*au, 100*au]'.format(r_d,params['r_in'],params['r_wall'])
-    n_x = [20., 30., 10., 20., 10., 30.]
+    #r_d = 0.3 #Same as r_dust, but without the *au so that the format is correct for xbound
+    x_bound = '[{0:7.3f}*au, ({0:7.3f}+0.1)*au, {1:7.3f}*au, {1:7.3f}*1.1*au, 100*au]'.format(params['r_in'],params['r_wall'])
+    n_x = [20., 30., 20., 40.]
+    n_z = [60.]
+    star_temp = '[{0:7.3f}]'.format(params['star_temp'])
+    
+    
+    
+    if asymmetry:
+        star_pos = '[{0:7.3f}*au,{1:7.3f}*au,0.0]'.format(params['star_x'],params['star_y'])
+        else:
+            star_pos = '[0.0, 0.0, 0.0]'   
     
     #edit the problem parameter file
-    r3.setup.problemSetupDust('ppdisk', binary=False, mstar='[2.0*ms]', tstar='[9000.0]',\
-                                 dustkappa_ext=['carbon'], gap_rin=gapin, gap_rout=gapout,\
+    r3.setup.problemSetupDust('ppdisk', binary=False, mstar='[2.0*ms]', tstar=star_temp,\
+                                 dustkappa_ext="['carbon']", gap_rin=gapin, gap_rout=gapout,\
                                  gap_drfact=gap_depletion, dusttogas=params['dtog'], \
-                                 rin=r_dust,nphot=nphot,nphot_scat=nphot_scat, \
-                                 nx=n_x, xbound=x_bound)
+                                 rin=r_in,nphot=nphot,nphot_scat=nphot_scat, \
+                                 nx=n_x, xbound=x_bound, nz=n_z, srim_rout=1.0)
                             
     # run the thermal monte carlo
     os.system('radmc3d mctherm > mctherm.out') 
@@ -123,15 +134,6 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     npix_mod = 256
     r3.image.makeImage(npix=npix_mod, sizeau=0.6*npix_mod, wav=3.776, incl=params['inc'], posang=0.)
 
-    #--- Parameters that are the same every time in the PA loop ---
-
-    
-    if planet: 
-        image = planet_in_disk(size=npix_mod,x0=params['x0'],y0=params['y0'],fwhm=params['fwhm'],height=params['height'])
-    else:
-        imag_obj = r3.image.readImage('image.out')
-        image = imag_obj.image[:,:,0]
-    
     #!!! Warning the central source flux changes a little. Maybe it is best to start 
     #with a (slightly) convolved image. Play with this!
     
@@ -180,7 +182,7 @@ if __name__ == "__main__":
     nwalkers = 22
     print('nwalkers=',nwalkers)
     threads = multiprocessing.cpu_count()
-    ipar = np.array([np.log(6.894e-3),np.log(1.553e-8),np.log(3.012e-3),np.log(11.22),np.log(22.13),48.85,129.5,103.,128.,np.log(0.3),np.log(1e-9)])
+    ipar = np.array([np.log(6.894e-3),np.log(1.553e-8),np.log(3.012e-3),np.log(11.22),np.log(22.13),48.85,129.5,1.,1.,np.log(9000.0),0.,0.,np.log(1000.0),np.log(0.0001)])
     # load in the results from the previous chain and use it as a starting point
     #c = open('chainfile.pkl','r')
     #old_prob,old_chain = pickle.load(c)
