@@ -43,7 +43,7 @@ from add_planet import *
 
 
 def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',nphot="long(4e4)",\
-    nphot_scat="long(2e4)", remove_directory=True, asymmetry=True planet=False):
+    nphot_scat="long(2e4)", remove_directory=True, asymmetry=False, planet=False, planet_mass=0.001):
     """Return the logarithm of the probability that a disk model fits the data, given model
     parameters x.
     
@@ -111,22 +111,38 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     #r_d = 0.3 #Same as r_dust, but without the *au so that the format is correct for xbound
     x_bound = '[{0:7.3f}*au, ({0:7.3f}+0.1)*au, {1:7.3f}*au, {1:7.3f}*1.1*au, 100*au]'.format(params['r_in'],params['r_wall'])
     n_x = [20., 30., 20., 40.]
-    n_z = [60.]
-    star_temp = '[{0:7.3f}]'.format(params['star_temp'])
+    n_z = 60
     
-    
-    
-    if asymmetry:
+    if planet and asymmetry:
+        star_pos = '[[{0:7.3f}*au,{1:7.3f}*au,0.0],[{2:7.3f}*au,{3:7.3f}*au,0.0]]'.format(params['star_x'],params['star_y'],params['planet_x'],params['planet_y'])
+        star_temp = '[{0:7.3f}, {1:7.3f}]'.format(params['star_temp'],params['planet_temp'])
+        mass = '[2.0*ms, {0:7.3f}*ms]'.format(planet_mass)
+        radii = '[2.0*rs, {0:7.3f}*rs]'.format(params['planet_r'])    
+        
+    elif planet:
+        star_pos = '[[0.0, 0.0, 0.0],[{0:7.3f}*au,{1:7.3f}*au,0.0]]'.format(params['planet_x'],params['planet_y'])
+        star_temp = '[{0:7.3f}, {1:7.3f}]'.format(params['star_temp'],params['planet_temp'])
+        mass = '[2.0*ms, {0:7.3f}*ms]'.format(planet_mass)
+        radii = '[2.0*rs, {0:7.3f}*rs]'.format(params['planet_r'])
+                 
+    elif asymmetry:
         star_pos = '[{0:7.3f}*au,{1:7.3f}*au,0.0]'.format(params['star_x'],params['star_y'])
-        else:
-            star_pos = '[0.0, 0.0, 0.0]'   
-    
+        star_temp = '[{0:7.3f}]'.format(params['star_temp'])
+        mass = '[2.0*ms]'
+        radii = '[2.0*rs]'
+          
+    else:
+        star_pos = '[0.0, 0.0, 0.0]'   
+        star_temp = '[{0:7.3f}]'.format(params['star_temp'])
+        mass = '[2.0*ms]'
+        radii = '[2.0*rs]'
+        
     #edit the problem parameter file
-    r3.setup.problemSetupDust('ppdisk', binary=False, mstar='[2.0*ms]', tstar=star_temp,\
-                                 dustkappa_ext="['carbon']", gap_rin=gapin, gap_rout=gapout,\
-                                 gap_drfact=gap_depletion, dusttogas=params['dtog'], \
-                                 rin=r_in,nphot=nphot,nphot_scat=nphot_scat, \
-                                 nx=n_x, xbound=x_bound, nz=n_z, srim_rout=1.0)
+    r3.setup.problemSetupDust('ppdisk', binary=False, mstar=mass, tstar=star_temp, rstar=radii,\
+                                pstar=star_pos, dustkappa_ext="['carbon']", gap_rin=gapin,\
+                                gap_rout=gapout, gap_drfact=gap_depletion, dusttogas=params['dtog'],\
+                                rin=r_in,nphot=nphot,nphot_scat=nphot_scat, nx=n_x, xbound=x_bound,\
+                                nz=n_z, srim_rout=1.0)
                             
     # run the thermal monte carlo
     os.system('radmc3d mctherm > mctherm.out') 
@@ -134,19 +150,22 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     npix_mod = 256
     r3.image.makeImage(npix=npix_mod, sizeau=0.6*npix_mod, wav=3.776, incl=params['inc'], posang=0.)
 
+    imag_obj=r3.image.readImage('image.out') 
+    imag=imag_obj.image[:,:,0]
+    
     #!!! Warning the central source flux changes a little. Maybe it is best to start 
     #with a (slightly) convolved image. Play with this!
     
     #Gaussian kernel
     kernel = np.array([[.25,.5,.25],[.5,1,.5],[.25,.5,.25]])
     kernel /= np.sum(kernel)
-    im = nd.filters.convolve(image,kernel)                    
+    im = nd.filters.convolve(imag,kernel)                    
 
     #Inclination angle, detailed disk properties can only come from RADMC-3D
     #Pa to add to the model image PA. Note that this is instrument (not sky) PA.
     
     # Define model type for if making model chi txt
-    model_type = str(params['dtog']) + ',' + str(params['gap_depletion_1']) + ',' + str(params['gap_depletion_2']) + ',' + str(params['r_in']) + ',' + str(params['r_wall']) + ',' + str(params['inc']) + ',' + str(params['pa'])
+    model_type = str(params['dtog']) + ',' + str(params['gap_depletion_1']) + ',' + str(params['gap_depletion_2']) + ',' + str(params['r_in']) + ',' + str(params['r_wall']) + ',' + str(params['inc']) + ',' + str(params['pa'] + ',')
     model_chi_txt = ''
     
     #This line call Keck tools
@@ -179,10 +198,10 @@ if __name__ == "__main__":
     #    sys.exit(0)
     #comm = MPI.COMM_WORLD
     #nwalkers = comm.Get_size()
-    nwalkers = 22
+    nwalkers = 28
     print('nwalkers=',nwalkers)
     threads = multiprocessing.cpu_count()
-    ipar = np.array([np.log(6.894e-3),np.log(1.553e-8),np.log(3.012e-3),np.log(11.22),np.log(22.13),48.85,129.5,1.,1.,np.log(9000.0),0.,0.,np.log(1000.0),np.log(0.0001)])
+    ipar = np.array([np.log(6.894e-3),np.log(1.553e-8),np.log(3.012e-3),np.log(11.22),np.log(22.13),48.85,129.5,1.,1.,np.log(8000.0),0.,0.,np.log(1000.0),np.log(0.001)])
     # load in the results from the previous chain and use it as a starting point
     #c = open('chainfile.pkl','r')
     #old_prob,old_chain = pickle.load(c)
@@ -190,7 +209,7 @@ if __name__ == "__main__":
     #define starting point as the last model of the last thread from the previous mcmc
     #ipar = old_chain[-1,-1]
     #make the starting cloud smaller
-    ipar_sig = np.array([.01,.03,.01,.01,.01,0.1,0.1,0.1,0.1,0.1,0.1])
+    ipar_sig = np.array([.01,.03,.01,.01,.01,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.01])
     ndim = len(ipar)
     #Could use parameters of random.normal instead of below. But Mike likes this way.
     p0 = [ipar + np.random.normal(size=ndim)*ipar_sig for i in range(nwalkers)]
@@ -200,10 +219,10 @@ if __name__ == "__main__":
     #sampler.lnprobability = old_prob
     #sampler.chain = old_chain
     #sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_conv_disk_radmc3d, args=[temperature=170.0])
-    sampler.run_mcmc(p0,1500)
+    sampler.run_mcmc(p0,30)
     #pool.close
     
-    chainfile = open('chainfile_cont.pkl','w')
+    chainfile = open('chainfile.pkl','w')
     pickle.dump((sampler.lnprobability,sampler.chain),chainfile)
     chainfile.close()
 
