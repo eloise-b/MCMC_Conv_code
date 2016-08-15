@@ -145,32 +145,6 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
         star_temp = '[{0:7.3f}]'.format(params['star_temp'])
         mass = '[{0:7.3f}*ms]'.format(star_m)
         radii = '[{0:7.3f}*rs]'.format(star_r)
-    
-    '''
-    if planet and asymmetry:
-        star_pos = '[[{0:7.3f}*au,{1:7.3f}*au,0.0],[{2:7.3f}*au,{3:7.3f}*au,0.0]]'.format(params['star_x'],params['star_y'],params['planet_x'],params['planet_y'])
-        star_temp = '[{0:7.3f}, {1:7.3f}]'.format(params['star_temp'],params['planet_temp'])
-        mass = '[2.0*ms, {0:7.3f}*ms]'.format(planet_mass)
-        radii = '[2.0*rs, {0:7.3f}*rs]'.format(params['planet_r'])    
-        
-    elif planet:
-        star_pos = '[[0.0, 0.0, 0.0],[{0:7.3f}*au,{1:7.3f}*au,0.0]]'.format(params['planet_x'],params['planet_y'])
-        star_temp = '[{0:7.3f}, {1:7.3f}]'.format(params['star_temp'],params['planet_temp'])
-        mass = '[2.0*ms, {0:7.3f}*ms]'.format(planet_mass)
-        radii = '[2.0*rs, {0:7.3f}*rs]'.format(params['planet_r'])
-                 
-    elif asymmetry:
-        star_pos = '[{0:7.3f}*au,{1:7.3f}*au,0.0]'.format(params['star_x'],params['star_y'])
-        star_temp = '[{0:7.3f}]'.format(params['star_temp'])
-        mass = '[2.0*ms]'
-        radii = '[2.0*rs]'
-          
-    else:
-        star_pos = '[0.0, 0.0, 0.0]'   
-        star_temp = '[{0:7.3f}]'.format(params['star_temp'])
-        mass = '[2.0*ms]'
-        radii = '[2.0*rs]'
-    '''
         
     #edit the problem parameter file
     r3.setup.problemSetupDust('ppdisk', binary=False, mstar=mass, tstar=star_temp, rstar=radii,\
@@ -201,11 +175,12 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     
     # Define model type for if making model chi txt
     model_type = str(params['dtog']) + ',' + str(params['gap_depletion']) + ',' + str(params['r_in']) + ','\
-                 + str(params['r_wall']) + ',' + str(params['inc']) + ',' + str(params['pa'] + ',' \
+                 + str(params['r_wall']) + ',' + str(params['inc']) + ',' + str(params['pa']) + ',' \
                  + str(params['star_x']) + ',' + str(params['star_y']) + ',' + str(params['star_temp']) \
                  + ',' + str(params['planet_x']) + ',' + str(params['planet_y']) + ',' \
                  + str(params['planet_temp']) + ',' + str(params['planet_r'])
-    model_chi_txt = ''
+    
+    model_chi_txt=''
     
     #This line call Keck tools
     chi_tot = rotate_and_fit(im, params['pa'],cal_ims_ft,tgt_ims, model_type, model_chi_txt,plot_ims=False)
@@ -236,14 +211,14 @@ if __name__ == "__main__":
     print('nwalkers=',nwalkers)
     threads = multiprocessing.cpu_count()
     #set parameters to 0 if you don't want them investigated not log(0) actually 0.0
-    ipar = np.array([np.log(6.894e-3),np.log(3.012e-3),np.log(11.22),np.log(22.13),48.85,129.5,1.,1.,np.log(8000.0),0.,0.,np.log(1000.0),np.log(0.001)])
+    ipar = np.array([np.log(6.894e-3),np.log(3.012e-3),np.log(11.22),np.log(22.13),48.85,129.5,1.0,1.0,np.log(8000.0),5.0,5.0,np.log(3000),np.log(1.0)])
     #set parameter in cloud to zero to not investigate it
-    ipar_sig = np.array([.01,.01,.01,.01,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.01])
+    ipar_sig = np.array([.01,.01,.01,.01,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.001])
     ndim = len(ipar)
     #Could use parameters of random.normal instead of below. But Mike likes this way.
     p0 = [ipar + np.random.normal(size=ndim)*ipar_sig for i in range(nwalkers)]
-    sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_conv_disk_radmc3d,threads=threads, kwargs=[planet=False])
-    sampler.run_mcmc(p0,30)
+    sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_conv_disk_radmc3d,threads=threads)
+    sampler.run_mcmc(p0,5)
     
     
     chainfile = open('chainfile.pkl','w')
