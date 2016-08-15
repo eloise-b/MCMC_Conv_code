@@ -1,3 +1,8 @@
+'''
+Copyright Eloise Birchall, Australian National University
+eloise.birchall@anu.edu.au
+'''
+
 from __future__ import print_function, division
 import scipy.ndimage as nd
 import numpy as np

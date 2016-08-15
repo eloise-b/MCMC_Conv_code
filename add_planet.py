@@ -1,4 +1,9 @@
-'''Function to add a planet to the disk'''
+'''
+Copyright Eloise Birchall, Australian National University
+eloise.birchall@anu.edu.au
+
+Function to add a planet to the disk
+'''
 
 from __future__ import print_function, division
 import scipy.ndimage as nd
