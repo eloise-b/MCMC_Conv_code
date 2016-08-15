@@ -5,7 +5,7 @@ eloise.birchall@anu.edu.au
 Script to do convolve rotate model, over the grid of models that has been created.
 
 Example line:
-lnprob_conv_disk_radmc3d([log(0.006894),log(1.553e-8),log(3.012e-3),log(11.22),log(22.13),48.85,129.5],remove_directory=False)
+lnprob_conv_disk_radmc3d([np.log(6.894e-3),np.log(3.012e-3),np.log(11.22),np.log(22.13),48.85,129.5,1.0,1.0,np.log(8000.0),5.0,5.0,np.log(3000),np.log(1.0)],remove_directory=False)
 
 Once MCMC is run, you need to save the chain. e.g. 
 
