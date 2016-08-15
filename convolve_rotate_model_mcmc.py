@@ -1,4 +1,8 @@
-"""Script to do convolve rotate model, over the grid of models that has been created.
+"""
+Copyright Eloise Birchall, Australian National University
+eloise.birchall@anu.edu.au
+
+Script to do convolve rotate model, over the grid of models that has been created.
 
 Example line:
 lnprob_conv_disk_radmc3d([log(0.006894),log(1.553e-8),log(3.012e-3),log(11.22),log(22.13),48.85,129.5],remove_directory=False)
@@ -43,29 +47,47 @@ from add_planet import *
 
 
 def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',nphot="long(4e4)",\
-    nphot_scat="long(2e4)", remove_directory=True, asymmetry=False, planet=False, planet_mass=0.001):
+    nphot_scat="long(2e4)", remove_directory=True, star_r=2.0, star_m=2.0, planet_mass=0.001):
+    #nphot_scat="long(2e4)", remove_directory=True, asymmetry=False, planet=False, planet_mass=0.001):
     """Return the logarithm of the probability that a disk model fits the data, given model
     parameters x.
     
     Parameters
     ----------
     x: numpy array
-        [log(dtog),log(gap_depletion_1),log(gap_depletion_2),log(r_in),log(r_wall),inc,pa]
+        [log(dtog),log(gap_depletion),log(r_in),log(r_wall),inc,pa,star_x,star_y,log(star_temp),\
+         planet_x,planet_y,log(planet_temp),log(planet_r)]
     temperature: float
         "Temperature" when viewing the monte carlo markov chain as an simulated 
         annealing process. Equivalent to scaling uncertainties in the image by
         np.sqrt(temperature).
     filename: string
         filename containing a fits file with packaged target and calibrator images.
+    nphot and nphot_scat : radmc3d inputs
+        these must be in that format
+    remove_directory : Boolean
+        true to remove directory, false to keep it
+    star_r = float
+        radius of star in solar radii, will be converted to Radmc input later
+    star_m = float
+        mass of star in solar masses, will be converted to Radmc input later
+    planet_m = float
+        mass of planet in solar masses, will be converted to Radmc input later
         
     """
     
 #    params = {'dtog':np.exp(x[0]),'gap_depletion_1':np.exp(x[1]),'gap_depletion_2':np.exp(x[2]),\
 #                'r_in':np.exp(x[3]),'r_wall':np.exp(x[4]),'inc':x[5],'pa':x[6]}
-    params = {'dtog':np.exp(x[0]),'gap_depletion_1':np.exp(x[1]),'gap_depletion_2':np.exp(x[2]),\
-               'r_in':np.exp(x[3]),'r_wall':np.exp(x[4]),'inc':x[5],'pa':x[6],'star_x':x[7],'star_y':x[8],\
-                'star_temp':np.exp(x[9]),'planet_x':x[10], 'planet_y':x[11],'planet_temp':np.exp(x[12]),\
-                'planet_r':np.exp(x[13])}
+#    params = {'dtog':np.exp(x[0]),'gap_depletion_1':np.exp(x[1]),'gap_depletion_2':np.exp(x[2]),\
+#               'r_in':np.exp(x[3]),'r_wall':np.exp(x[4]),'inc':x[5],'pa':x[6],'star_x':x[7],'star_y':x[8],\
+#                'star_temp':np.exp(x[9]),'planet_x':x[10], 'planet_y':x[11],'planet_temp':np.exp(x[12]),\
+#                'planet_r':np.exp(x[13])}
+    
+    #Parameters that go into the code
+    params = {'dtog':np.exp(x[0]),'gap_depletion':np.exp(x[1]),'r_in':np.exp(x[2]),\
+            'r_wall':np.exp(x[3]),'inc':x[4],'pa':x[5],'star_x':x[6],'star_y':x[7],\
+            'star_temp':np.exp(x[8]),'planet_x':x[9], 'planet_y':x[10],'planet_temp':np.exp(x[11]),\
+            'planet_r':np.exp(x[12])}
                 
     #Target images.
     tgt_ims = pyfits.getdata(filename,0)
@@ -105,14 +127,26 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     
     #Convert parameters to RadMC3D strings
     r_in = '{0:7.3f}*au'.format(params['r_in'])
-    gapin  = '[0*au, {0:7.3f}*au, {1:7.3f}*au]'.format(params['r_in'],params['r_wall'])
-    gapout = '[{0:7.3f}*au, {1:7.3f}*au, 60*au]'.format(params['r_in'],params['r_wall'])
-    gap_depletion = '[{0:10.3e}, {1:10.3e}, 1e-1]'.format(params['gap_depletion_1'],params['gap_depletion_2'])
-    #r_d = 0.3 #Same as r_dust, but without the *au so that the format is correct for xbound
+    gapin  = '[{0:7.3f}*au, {1:7.3f}*au]'.format(params['r_in'],params['r_wall'])
+    gapout = '[{0:7.3f}*au, 60*au]'.format(params['r_wall'])
+    gap_depletion = '[{0:10.3e}, 1e-1]'.format(params['gap_depletion'])
     x_bound = '[{0:7.3f}*au, ({0:7.3f}+0.1)*au, {1:7.3f}*au, {1:7.3f}*1.1*au, 100*au]'.format(params['r_in'],params['r_wall'])
     n_x = [20., 30., 20., 40.]
     n_z = 60
     
+    if params['planet_temp'] and params['planet_r'] != 0.0:
+        star_pos = '[[{0:7.3f}*au,{1:7.3f}*au,0.0],[{2:7.3f}*au,{3:7.3f}*au,0.0]]'.format(params['star_x'],params['star_y'],params['planet_x'],params['planet_y'])
+        star_temp = '[{0:7.3f}, {1:7.3f}]'.format(params['star_temp'],params['planet_temp'])
+        mass = '[{0:7.3f}*ms, {1:7.3f}*ms]'.format(star_m,planet_mass)
+        radii = '[{0:7.3f}*rs, {1:7.3f}*rs]'.format(star_r,params['planet_r']) 
+        
+    else:
+        star_pos = '[{0:7.3f}*au,{1:7.3f}*au,0.0]'.format(params['star_x'],params['star_y'])
+        star_temp = '[{0:7.3f}]'.format(params['star_temp'])
+        mass = '[{0:7.3f}*ms]'.format(star_m)
+        radii = '[{0:7.3f}*rs]'.format(star_r)
+    
+    '''
     if planet and asymmetry:
         star_pos = '[[{0:7.3f}*au,{1:7.3f}*au,0.0],[{2:7.3f}*au,{3:7.3f}*au,0.0]]'.format(params['star_x'],params['star_y'],params['planet_x'],params['planet_y'])
         star_temp = '[{0:7.3f}, {1:7.3f}]'.format(params['star_temp'],params['planet_temp'])
@@ -136,6 +170,7 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
         star_temp = '[{0:7.3f}]'.format(params['star_temp'])
         mass = '[2.0*ms]'
         radii = '[2.0*rs]'
+    '''
         
     #edit the problem parameter file
     r3.setup.problemSetupDust('ppdisk', binary=False, mstar=mass, tstar=star_temp, rstar=radii,\
@@ -165,7 +200,11 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     #Pa to add to the model image PA. Note that this is instrument (not sky) PA.
     
     # Define model type for if making model chi txt
-    model_type = str(params['dtog']) + ',' + str(params['gap_depletion_1']) + ',' + str(params['gap_depletion_2']) + ',' + str(params['r_in']) + ',' + str(params['r_wall']) + ',' + str(params['inc']) + ',' + str(params['pa'] + ',')
+    model_type = str(params['dtog']) + ',' + str(params['gap_depletion']) + ',' + str(params['r_in']) + ','\
+                 + str(params['r_wall']) + ',' + str(params['inc']) + ',' + str(params['pa'] + ',' \
+                 + str(params['star_x']) + ',' + str(params['star_y']) + ',' + str(params['star_temp']) \
+                 + ',' + str(params['planet_x']) + ',' + str(params['planet_y']) + ',' \
+                 + str(params['planet_temp']) + ',' + str(params['planet_r'])
     model_chi_txt = ''
     
     #This line call Keck tools
@@ -192,35 +231,20 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     
 #Here is some code that will run with %run but not import.
 if __name__ == "__main__":
-    #pool = MPIPool()
-    #if not pool.is_master():
-    #    pool.wait()
-    #    sys.exit(0)
-    #comm = MPI.COMM_WORLD
-    #nwalkers = comm.Get_size()
-    nwalkers = 28
+    #nwalkers is set to be twice the number of parameters - should make this automatic
+    nwalkers = 26
     print('nwalkers=',nwalkers)
     threads = multiprocessing.cpu_count()
-    ipar = np.array([np.log(6.894e-3),np.log(1.553e-8),np.log(3.012e-3),np.log(11.22),np.log(22.13),48.85,129.5,1.,1.,np.log(8000.0),0.,0.,np.log(1000.0),np.log(0.001)])
-    # load in the results from the previous chain and use it as a starting point
-    #c = open('chainfile.pkl','r')
-    #old_prob,old_chain = pickle.load(c)
-    #c.close()
-    #define starting point as the last model of the last thread from the previous mcmc
-    #ipar = old_chain[-1,-1]
-    #make the starting cloud smaller
-    ipar_sig = np.array([.01,.03,.01,.01,.01,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.01])
+    #set parameters to 0 if you don't want them investigated not log(0) actually 0.0
+    ipar = np.array([np.log(6.894e-3),np.log(3.012e-3),np.log(11.22),np.log(22.13),48.85,129.5,1.,1.,np.log(8000.0),0.,0.,np.log(1000.0),np.log(0.001)])
+    #set parameter in cloud to zero to not investigate it
+    ipar_sig = np.array([.01,.01,.01,.01,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.01])
     ndim = len(ipar)
     #Could use parameters of random.normal instead of below. But Mike likes this way.
     p0 = [ipar + np.random.normal(size=ndim)*ipar_sig for i in range(nwalkers)]
-    #sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_conv_disk_radmc3d,pool=pool)
-    #sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_conv_disk_radmc3d,threads=threads, args=[old_chain, old_prob])
-    sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_conv_disk_radmc3d,threads=threads)
-    #sampler.lnprobability = old_prob
-    #sampler.chain = old_chain
-    #sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_conv_disk_radmc3d, args=[temperature=170.0])
+    sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_conv_disk_radmc3d,threads=threads, kwargs=[planet=False])
     sampler.run_mcmc(p0,30)
-    #pool.close
+    
     
     chainfile = open('chainfile.pkl','w')
     pickle.dump((sampler.lnprobability,sampler.chain),chainfile)
