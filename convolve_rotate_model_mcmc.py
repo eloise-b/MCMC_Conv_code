@@ -13,16 +13,7 @@ import pickle
 chainfile = open('chainfile.pkl','w')
 pickle.dump(chainfile,(sampler.lnprobability,sampler.chain))
 
-With MPI:
-
-mpirun -np 2 python convolve_rotate_model_mcmc.py
 """
-
-#Need to loop over same parameters as the grid, so that I can change into the correct files
-
-#Possibly should make the grid a function and convolving code a function so that I can call
-#them and output the directory names to a list and then cycle the convolution code over
-#that list
 
 #Import the things that will be useful
 
@@ -75,13 +66,6 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
         mass of planet in solar masses, will be converted to Radmc input later
         
     """
-    
-#    params = {'dtog':np.exp(x[0]),'gap_depletion_1':np.exp(x[1]),'gap_depletion_2':np.exp(x[2]),\
-#                'r_in':np.exp(x[3]),'r_wall':np.exp(x[4]),'inc':x[5],'pa':x[6]}
-#    params = {'dtog':np.exp(x[0]),'gap_depletion_1':np.exp(x[1]),'gap_depletion_2':np.exp(x[2]),\
-#               'r_in':np.exp(x[3]),'r_wall':np.exp(x[4]),'inc':x[5],'pa':x[6],'star_x':x[7],'star_y':x[8],\
-#                'star_temp':np.exp(x[9]),'planet_x':x[10], 'planet_y':x[11],'planet_temp':np.exp(x[12]),\
-#                'planet_r':np.exp(x[13])}
     
     #Parameters that go into the code
     params = {'dtog':np.exp(x[0]),'gap_depletion':np.exp(x[1]),'r_in':np.exp(x[2]),\
