@@ -73,7 +73,7 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     #Parameters that go into the code
     params = {'dtog':np.exp(x[0]),'gap_depletion':np.exp(x[1]),'r_in':np.exp(x[2]),\
             'r_wall':np.exp(x[3]),'inc':x[4],'pa':x[5],'star_x':x[6],'star_y':x[7],\
-            'star_temp':np.exp(x[8]),'planet_x':x[9], 'planet_y':x[10], 'planet_r':np.exp(x[11])}
+            'star_temp':np.exp(x[8]),'planet_x':x[9], 'planet_y':x[10], 'planet_r':x[11]}
                 
     #Target images.
     tgt_ims = pyfits.getdata(filename,0)
@@ -196,8 +196,8 @@ if __name__ == "__main__":
     nwalkers = 26
     print('nwalkers=',nwalkers)
     threads = multiprocessing.cpu_count()
-    #set parameters to 0 if you don't want them investigated not log(0) actually 0.0
-    ipar = np.array([np.log(6.894e-3),np.log(3.012e-3),np.log(11.22),np.log(22.13),48.85,129.5,1.0,1.0,np.log(8000.0),5.0,5.0,np.log(1.0)])
+    #set parameters to 0.0 if you don't want them investigated
+    ipar = np.array([np.log(6.894e-3),np.log(3.012e-3),np.log(11.22),np.log(22.13),48.85,129.5,0.0,0.0,np.log(8000.0),0.0,0.0,0.0])
     #set parameter in cloud to zero to not investigate it
     ipar_sig = np.array([.01,.01,.01,.01,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.001])
     ndim = len(ipar)
