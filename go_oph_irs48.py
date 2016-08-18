@@ -5,10 +5,10 @@ import emcee
 import pickle
 from convolve_rotate_model_mcmc import lnprob_conv_disk_radmc3d
 
-multiprocess=False
+multiprocess=True
 
 #nwalkers is set to be twice the number of parameters - should make this automatic
-nwalkers = 26
+nwalkers = 24
 print('nwalkers=',nwalkers)
 
 #set parameters to 0.0 if you don't want them investigated. Have to set ipar_sig to zero also!
@@ -21,10 +21,10 @@ p0 = [ipar + np.random.normal(size=ndim)*ipar_sig for i in range(nwalkers)]
 if (multiprocess):
     threads = multiprocessing.cpu_count()
     sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_conv_disk_radmc3d,threads=threads,kwargs={"planet_temp":2000})
-    sampler.run_mcmc(p0,5)
+    sampler.run_mcmc(p0,3)
 else:
     sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_conv_disk_radmc3d,kwargs={"planet_temp":2000})
-    sampler.run_mcmc(p0,5)
+    sampler.run_mcmc(p0,3)
 
 chainfile = open('chainfile.pkl','w')
 pickle.dump((sampler.lnprobability,sampler.chain),chainfile)
