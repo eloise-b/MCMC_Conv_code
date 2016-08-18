@@ -120,9 +120,9 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     n_x = [20., 30., 20., 40.]
     n_z = 60
     
-    if params['planet_temp'] and params['planet_r'] != 0.0:
+    if params['planet_r'] != 0.0:
         star_pos = '[[{0:7.3f}*au,{1:7.3f}*au,0.0],[{2:7.3f}*au,{3:7.3f}*au,0.0]]'.format(params['star_x'],params['star_y'],params['planet_x'],params['planet_y'])
-        star_temp = '[{0:7.3f}, {1:7.3f}]'.format(params['star_temp'],params['planet_temp'])
+        star_temp = '[{0:7.3f}, {1:7.3f}]'.format(params['star_temp'],planet_temp)
         mass = '[{0:7.3f}*ms, {1:7.3f}*ms]'.format(star_m,planet_mass)
         radii = '[{0:7.3f}*rs, {1:7.3f}*rs]'.format(star_r,params['planet_r']) 
         
