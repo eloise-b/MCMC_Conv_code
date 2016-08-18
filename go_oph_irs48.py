@@ -11,9 +11,9 @@ multiprocess=False
 nwalkers = 26
 print('nwalkers=',nwalkers)
 
-#set parameters to 0.0 if you don't want them investigated
+#set parameters to 0.0 if you don't want them investigated. Have to set ipar_sig to zero also!
 ipar = np.array([np.log(6.894e-3),np.log(3.012e-3),np.log(11.22),np.log(22.13),48.85,129.5,0.0,0.0,np.log(8000.0),0.0,0.0,0.0])
-ipar_sig = np.array([.01,.01,.01,.01,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.001])
+ipar_sig = np.array([.01,.01,.01,.01,0.1,0.1,0.,0.,0.05,0.,0.,0.0])
 ndim = len(ipar)
 #Could use parameters of random.normal instead of below, if you prefer that.
 p0 = [ipar + np.random.normal(size=ndim)*ipar_sig for i in range(nwalkers)]
@@ -23,7 +23,7 @@ if (multiprocess):
     sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_conv_disk_radmc3d,threads=threads,kwargs={"planet_temp":2000})
     sampler.run_mcmc(p0,5)
 else:
-    sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_conv_disk_radmc3d) #,kwargs={"planet_temp":2000})
+    sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_conv_disk_radmc3d,kwargs={"planet_temp":2000})
     sampler.run_mcmc(p0,5)
 
 chainfile = open('chainfile.pkl','w')
