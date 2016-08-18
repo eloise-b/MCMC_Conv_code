@@ -30,11 +30,10 @@ import astropy.io.fits as pyfits
 import pdb
 import os
 import shutil
-from keck_tools import *
+from keck_tools import rotate_and_fit
 import pickle
 #import time
 import multiprocessing
-from add_planet import *
 
 
 def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',nphot="long(4e4)",\
