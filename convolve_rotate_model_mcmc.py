@@ -38,7 +38,8 @@ from add_planet import *
 
 
 def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',nphot="long(4e4)",\
-    nphot_scat="long(2e4)", remove_directory=True, star_r=2.0, star_m=2.0, planet_mass=0.001):
+    nphot_scat="long(2e4)", remove_directory=True, star_r=2.0, star_m=2.0, planet_mass=0.001,\
+    planet_temp=1500.0):
     #nphot_scat="long(2e4)", remove_directory=True, asymmetry=False, planet=False, planet_mass=0.001):
     """Return the logarithm of the probability that a disk model fits the data, given model
     parameters x.
@@ -70,8 +71,7 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     #Parameters that go into the code
     params = {'dtog':np.exp(x[0]),'gap_depletion':np.exp(x[1]),'r_in':np.exp(x[2]),\
             'r_wall':np.exp(x[3]),'inc':x[4],'pa':x[5],'star_x':x[6],'star_y':x[7],\
-            'star_temp':np.exp(x[8]),'planet_x':x[9], 'planet_y':x[10],'planet_temp':np.exp(x[11]),\
-            'planet_r':np.exp(x[12])}
+            'star_temp':np.exp(x[8]),'planet_x':x[9], 'planet_y':x[10], 'planet_r':np.exp(x[11])}
                 
     #Target images.
     tgt_ims = pyfits.getdata(filename,0)
@@ -162,7 +162,7 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
                  + str(params['r_wall']) + ',' + str(params['inc']) + ',' + str(params['pa']) + ',' \
                  + str(params['star_x']) + ',' + str(params['star_y']) + ',' + str(params['star_temp']) \
                  + ',' + str(params['planet_x']) + ',' + str(params['planet_y']) + ',' \
-                 + str(params['planet_temp']) + ',' + str(params['planet_r'])
+                + str(params['planet_r'])
     
     model_chi_txt=''
     
@@ -195,9 +195,9 @@ if __name__ == "__main__":
     print('nwalkers=',nwalkers)
     threads = multiprocessing.cpu_count()
     #set parameters to 0 if you don't want them investigated not log(0) actually 0.0
-    ipar = np.array([np.log(6.894e-3),np.log(3.012e-3),np.log(11.22),np.log(22.13),48.85,129.5,1.0,1.0,np.log(8000.0),5.0,5.0,np.log(3000),np.log(1.0)])
+    ipar = np.array([np.log(6.894e-3),np.log(3.012e-3),np.log(11.22),np.log(22.13),48.85,129.5,1.0,1.0,np.log(8000.0),5.0,5.0,np.log(1.0)])
     #set parameter in cloud to zero to not investigate it
-    ipar_sig = np.array([.01,.01,.01,.01,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.001])
+    ipar_sig = np.array([.01,.01,.01,.01,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.001])
     ndim = len(ipar)
     #Could use parameters of random.normal instead of below. But Mike likes this way.
     p0 = [ipar + np.random.normal(size=ndim)*ipar_sig for i in range(nwalkers)]
