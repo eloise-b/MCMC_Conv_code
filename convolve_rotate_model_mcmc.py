@@ -65,6 +65,8 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
         mass of star in solar masses, will be converted to Radmc input later
     planet_m = float
         mass of planet in solar masses, will be converted to Radmc input later
+    planet_temp = float
+        temperature of planet in K
         
     """
     
