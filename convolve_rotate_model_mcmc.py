@@ -124,19 +124,20 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
         star_temp = '[{0:7.3f}, {1:7.3f}]'.format(params['star_temp'],planet_temp)
         mass = '[{0:7.3f}*ms, {1:7.3f}*ms]'.format(star_m,planet_mass)
         radii = '[{0:7.3f}*rs, {1:7.3f}*rs]'.format(star_r,params['planet_r']) 
-        
+        staremis_type = '["blackbody","blackbody"]' 
     else:
         star_pos = '[{0:7.3f}*au,{1:7.3f}*au,0.0]'.format(params['star_x'],params['star_y'])
         star_temp = '[{0:7.3f}]'.format(params['star_temp'])
         mass = '[{0:7.3f}*ms]'.format(star_m)
         radii = '[{0:7.3f}*rs]'.format(star_r)
+        staremis_type = '["blackbody"]'
         
     #edit the problem parameter file
     r3.setup.problemSetupDust('ppdisk', binary=False, mstar=mass, tstar=star_temp, rstar=radii,\
                                 pstar=star_pos, dustkappa_ext="['carbon']", gap_rin=gapin,\
                                 gap_rout=gapout, gap_drfact=gap_depletion, dusttogas=params['dtog'],\
                                 rin=r_in,nphot=nphot,nphot_scat=nphot_scat, nx=n_x, xbound=x_bound,\
-                                nz=n_z, srim_rout=1.0)
+                                nz=n_z, srim_rout=1.0, staremis_type=staremis_type)
                             
     # run the thermal monte carlo
     os.system('radmc3d mctherm > mctherm.out') 
