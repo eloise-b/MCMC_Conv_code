@@ -38,7 +38,7 @@ import multiprocessing
 
 def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',nphot="long(4e4)",\
     nphot_scat="long(2e4)", remove_directory=True, star_r=2.0, star_m=2.0, planet_mass=0.001,\
-    planet_temp=1500.0):
+    planet_temp=1500.0, dist=120.0, pxsize=0.01, wav_in_um=3.776, mdisk=6e-3):
     #nphot_scat="long(2e4)", remove_directory=True, asymmetry=False, planet=False, planet_mass=0.001):
     """Return the logarithm of the probability that a disk model fits the data, given model
     parameters x.
@@ -66,7 +66,12 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
         mass of planet in solar masses, will be converted to Radmc input later
     planet_temp = float
         temperature of planet in K
-        
+    dist: float
+        Distance in pc
+    pxsize : float
+        Pixel size in arcsec. Note that the MCMC image is sampled 2 times higher than this.
+    mdisk: float
+        total disk mass in M_Sun.
     """
    
     print("Debugging... planet_temp is: {0:5.1f}".format(planet_temp)) 
@@ -132,18 +137,25 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
         radii = '[{0:7.3f}*rs]'.format(star_r)
         staremis_type = '["blackbody"]'
         
+    #No idea how (if) dust to gas worked prior to this line (?)
+    dusttogas_str = "{0:8.6f}".format(params['dtog'])
+    mdisk_str = '[{0:9.7f}*ms]'.format(mdisk)
+        
     #edit the problem parameter file
     r3.setup.problemSetupDust('ppdisk', binary=False, mstar=mass, tstar=star_temp, rstar=radii,\
                                 pstar=star_pos, dustkappa_ext="['carbon']", gap_rin=gapin,\
-                                gap_rout=gapout, gap_drfact=gap_depletion, dusttogas=params['dtog'],\
+                                gap_rout=gapout, gap_drfact=gap_depletion, dusttogas=dusttogas_str,\
                                 rin=r_in,nphot=nphot,nphot_scat=nphot_scat, nx=n_x, xbound=x_bound,\
-                                nz=n_z, srim_rout=1.0, staremis_type=staremis_type)
-                            
+                                nz=n_z, srim_rout=1.0, staremis_type=staremis_type,mdisk=mdisk_str)
+                          
     # run the thermal monte carlo
     os.system('radmc3d mctherm > mctherm.out') 
     #Create the image
     npix_mod = 256
-    r3.image.makeImage(npix=npix_mod, sizeau=0.6*npix_mod, wav=3.776, incl=params['inc'], posang=0.)
+    #The size per pixel in the image is pxsize * dist / 2. 
+    #This is because a distance is a conversion of AU per arcsec, and we are subsampling
+    #by a factor of 2.
+    r3.image.makeImage(npix=npix_mod, sizeau=pxsize*dist/2*npix_mod, wav=wav_in_um, incl=params['inc'], posang=0.)
 
     imag_obj=r3.image.readImage('image.out') 
     imag=imag_obj.image[:,:,0]
