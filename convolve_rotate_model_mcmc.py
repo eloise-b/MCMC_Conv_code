@@ -38,7 +38,7 @@ import multiprocessing
 
 def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',nphot="long(4e4)",\
     nphot_scat="long(2e4)", remove_directory=True, star_r=2.0, star_m=2.0, planet_mass=0.001,\
-    planet_temp=1500.0):
+    planet_temp=1500.0,mdisk=1e-4):
     #nphot_scat="long(2e4)", remove_directory=True, asymmetry=False, planet=False, planet_mass=0.001):
     """Return the logarithm of the probability that a disk model fits the data, given model
     parameters x.
@@ -66,6 +66,8 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
         mass of planet in solar masses, will be converted to Radmc input later
     planet_temp = float
         temperature of planet in K
+    mdisk = float
+        mass of disk in solar masses, will be converted to a radmc3d input later
         
     """
    
@@ -116,6 +118,8 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     gapin  = '[{0:7.3f}*au, {1:7.3f}*au]'.format(params['r_in'],params['r_wall'])
     gapout = '[{0:7.3f}*au, 60*au]'.format(params['r_wall'])
     gap_depletion = '[{0:10.3e}, 1e-1]'.format(params['gap_depletion'])
+    dusttogas_str = "{0:8.6f}".format(params['dtog'])
+    mdisk_str = '[{0:9.7f}*ms]'.format(mdisk)
     x_bound = '[{0:7.3f}*au, ({0:7.3f}+0.1)*au, {1:7.3f}*au, {1:7.3f}*1.1*au, 100*au]'.format(params['r_in'],params['r_wall'])
     n_x = [20., 30., 20., 40.]
     n_z = 60
@@ -135,9 +139,9 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     #edit the problem parameter file
     r3.setup.problemSetupDust('ppdisk', binary=False, mstar=mass, tstar=star_temp, rstar=radii,\
                                 pstar=star_pos, dustkappa_ext="['carbon']", gap_rin=gapin,\
-                                gap_rout=gapout, gap_drfact=gap_depletion, dusttogas=params['dtog'],\
+                                gap_rout=gapout, gap_drfact=gap_depletion, dusttogas=dusttogas_str,\
                                 rin=r_in,nphot=nphot,nphot_scat=nphot_scat, nx=n_x, xbound=x_bound,\
-                                nz=n_z, srim_rout=1.0, staremis_type=staremis_type)
+                                nz=n_z, srim_rout=1.0, staremis_type=staremis_type,mdisk=mdisk_str)
                             
     # run the thermal monte carlo
     os.system('radmc3d mctherm > mctherm.out') 
