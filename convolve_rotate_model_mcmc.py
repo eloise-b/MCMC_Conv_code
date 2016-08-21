@@ -121,6 +121,8 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     gapin  = '[{0:7.3f}*au, {1:7.3f}*au]'.format(params['r_in'],params['r_wall'])
     gapout = '[{0:7.3f}*au, 60*au]'.format(params['r_wall'])
     gap_depletion = '[{0:10.3e}, 1e-1]'.format(params['gap_depletion'])
+    dusttogas_str = "{0:8.6f}".format(params['dtog'])
+    mdisk_str = '[{0:9.7f}*ms]'.format(mdisk)
     x_bound = '[{0:7.3f}*au, ({0:7.3f}+0.1)*au, {1:7.3f}*au, {1:7.3f}*1.1*au, 100*au]'.format(params['r_in'],params['r_wall'])
     n_x = [20., 30., 20., 40.]
     n_z = 60
@@ -147,7 +149,6 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
                                 gap_rout=gapout, gap_drfact=gap_depletion, dusttogas=dusttogas_str,\
                                 rin=r_in,nphot=nphot,nphot_scat=nphot_scat, nx=n_x, xbound=x_bound,\
                                 nz=n_z, srim_rout=1.0, staremis_type=staremis_type,mdisk=mdisk_str)
-                          
     # run the thermal monte carlo
     os.system('radmc3d mctherm > mctherm.out') 
     #Create the image
