@@ -14,14 +14,17 @@ nwalkers = 24
 print('nwalkers=',nwalkers)
 
 #set parameters to 0.0 if you don't want them investigated. Have to set ipar_sig to zero also!
-ipar = np.array([np.log(0.6e-3), #Dust to gas
-                 np.log(3e-3), #Gap Depletion
-                 np.log(16.0),     #Inner Radius (AU)
-                 np.log(25.0),     #Wall Radius (AU)
-                 20,               #Inclination
-                 90,               #Position Angle
-                 0.0,0.0,          #Star position offset (AU)
-                 np.log(7300.0),   #Stellar temperature (8250 from Yeon Seok 2015)
+#Best so far is -843.
+#Issues: stellar temperature and dust to gas compete with each other. They only 
+#are independent when the disk becomes optically thick or the outer disk is involved.
+ipar = np.array([np.log(0.609e-3), #0: Dust to gas 
+                 np.log(3.29e-3), #1: Gap Depletion
+                 np.log(12.3),     #2: Inner Radius (AU)
+                 np.log(25.0),     #3: Wall Radius (AU)
+                 14.7,               #4: Inclination
+                 138.6,               #5: Position Angle
+                 0.0,0.0,          #6,7: Star position offset (AU)
+                 np.log(6571),   #8: Stellar temperature (8250 from Yeon Seok 2015)
                  0.0,0.0,0.0])     #Planet x, y, radius.
 
 ntest = 9
@@ -41,7 +44,7 @@ if (False):
         lnprob[i] = lnprob_conv_disk_radmc3d(ipar_test, dist=145, remove_directory=False)
     pdb.set_trace()
                  
-ipar_sig = np.array([.01,.01,.01,.0,1,5,0.,0.,0.05,0.,0.,0.0])
+ipar_sig = np.array([.02,.02,.02,.0,1,5,0.,0.,0.03,0.,0.,0.0])
 ndim = len(ipar)
 #Could use parameters of random.normal instead of below, if you prefer that.
 p0 = [ipar + np.random.normal(size=ndim)*ipar_sig for i in range(nwalkers)]
@@ -49,7 +52,7 @@ p0 = [ipar + np.random.normal(size=ndim)*ipar_sig for i in range(nwalkers)]
 if (multiprocess):
     threads = multiprocessing.cpu_count()
     sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_conv_disk_radmc3d,threads=threads,kwargs={"planet_temp":2000})
-    sampler.run_mcmc(p0,5)
+    sampler.run_mcmc(p0,10)
 else:
     sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_conv_disk_radmc3d,kwargs={"planet_temp":2000})
     sampler.run_mcmc(p0,5)
