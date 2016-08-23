@@ -14,24 +14,42 @@ nwalkers = 24
 print('nwalkers=',nwalkers)
 
 #set parameters to 0.0 if you don't want them investigated. Have to set ipar_sig to zero also!
-#Best so far is -843.
+
 #Issues: stellar temperature and dust to gas compete with each other. They only 
-#are independent when the disk becomes optically thick or the outer disk is involved.
-ipar = np.array([np.log(0.609e-3), #0: Dust to gas 
-                 np.log(3.29e-3), #1: Gap Depletion
-                 np.log(12.3),     #2: Inner Radius (AU)
-                 np.log(25.0),     #3: Wall Radius (AU)
-                 14.7,               #4: Inclination
-                 138.6,               #5: Position Angle
-                 0.0,0.0,          #6,7: Star position offset (AU)
-                 np.log(6571),   #8: Stellar temperature (8250 from Yeon Seok 2015)
+ipar = np.array([np.log(5.10e-4), #Dust to gas
+                 np.log(2.24e-3), #Gap Depletion
+                 np.log(12.44),     #Inner Radius (AU)
+                 np.log(25.0),     #Wall Radius (AU)
+                 28.7,               #Inclination
+                 133.4,               #Position Angle
+                 0.0,-0.6,          #Star position offset (AU)
+                 np.log(7327.0),   #Stellar temperature (8250 from Yeon Seok 2015)
                  0.0,0.0,0.0])     #Planet x, y, radius.
 
-ntest = 9
-lnprob = np.empty(ntest)
-ipar_test = ipar.copy()
+#In [35]: sampler.flatchain[5996]
+#Out[35]: 
+#array([ -7.58035713e+00,  -6.10215030e+00,   2.52067287e+00,
+#         3.21887582e+00,   2.87033559e+01,   1.33428656e+02,
+#         3.29517973e-02,  -5.71955894e-01,   8.89932185e+00,
+#         0.00000000e+00,   0.00000000e+00,   0.00000000e+00])
+#
+#In [36]: np.exp(sampler.flatchain[5996])
+#Out[36]: 
+#array([  5.10378917e-04,   2.23805007e-03,   1.24369623e+01,
+#         2.50000000e+01,   2.92219432e+12,   8.85786000e+57,
+#         1.03350072e+00,   5.64420412e-01,   7.32700307e+03,
+#         1.00000000e+00,   1.00000000e+00,   1.00000000e+00])
+
+mode='test'
+mode='mcmc'
+mode='plot'
+kwargs = {"planet_temp":2000,"temperature":1000,"filename":"HD169142_2014_ims.fits","dist":145}
+
 #A test code block to see the effect of changing one parameter at a time.
-if (False):
+if mode=='test':
+    ntest = 9
+    lnprob = np.empty(ntest)
+    ipar_test = ipar.copy()
     ptests = np.log((0.6 + 0.05*np.arange(ntest))*1e-3)   
     ix = 0            
     ptests = 30 * np.arange(ntest)     
@@ -41,28 +59,29 @@ if (False):
     for i in range(len(ptests)):
         ipar_test[ix] = ptests[i]
         #Examine our initial model...
-        lnprob[i] = lnprob_conv_disk_radmc3d(ipar_test, dist=145, remove_directory=False)
-    pdb.set_trace()
-                 
-ipar_sig = np.array([.02,.02,.02,.0,1,5,0.,0.,0.03,0.,0.,0.0])
-ndim = len(ipar)
-#Could use parameters of random.normal instead of below, if you prefer that.
-p0 = [ipar + np.random.normal(size=ndim)*ipar_sig for i in range(nwalkers)]
+        lnprob[i] = lnprob_conv_disk_radmc3d(ipar_test, remove_directory=False, **kwargs)
+elif mode=='plot':
+    lnprob = lnprob_conv_disk_radmc3d(ipar, remove_directory=False, plot_ims=True, **kwargs)
+elif mode=='mcmc':
+    ipar_sig = np.array([.01,.01,.01,.0,1,5,0.05,0.05,0.05,0.,0.,0.0])
+    ndim = len(ipar)
+    #Could use parameters of random.normal instead of below, if you prefer that.
+    p0 = [ipar + np.random.normal(size=ndim)*ipar_sig for i in range(nwalkers)]
 
-if (multiprocess):
-    threads = multiprocessing.cpu_count()
-    sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_conv_disk_radmc3d,threads=threads,kwargs={"planet_temp":2000})
-    sampler.run_mcmc(p0,10)
-else:
-    sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_conv_disk_radmc3d,kwargs={"planet_temp":2000})
-    sampler.run_mcmc(p0,5)
+    if (multiprocess):
+        threads = multiprocessing.cpu_count()
+        sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_conv_disk_radmc3d, threads=threads, kwargs=kwargs)
+        sampler.run_mcmc(p0,500)
+    else:
+        sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_conv_disk_radmc3d, kwargs=kwargs)
+        sampler.run_mcmc(p0,50)
 
-chainfile = open('chainfile.pkl','w')
-pickle.dump((sampler.lnprobability,sampler.chain),chainfile)
-chainfile.close()
+    chainfile = open('chainfile.pkl','w')
+    pickle.dump((sampler.lnprobability,sampler.chain),chainfile)
+    chainfile.close()
 
-#Useful things
-#np.max(sampler.flatlnprobability)
-#np.argmax(sampler.flatlnprobability)
-#sampler.flatchain[np.argmax(sampler.flatlnprobability)]
-#np.exp(sampler.flatchain[np.argmax(sampler.flatlnprobability)][0:5])
+    #Useful things
+    #np.max(sampler.flatlnprobability)
+    #np.argmax(sampler.flatlnprobability)
+    #sampler.flatchain[np.argmax(sampler.flatlnprobability)]
+    #np.exp(sampler.flatchain[np.argmax(sampler.flatlnprobability)][0:5])

@@ -35,11 +35,28 @@ import pickle
 #import time
 import multiprocessing
 
+def ft_and_resample(cal_ims):
+    """Create the Fourier transform of a set of images, resampled onto half the
+    pixel scale """
+    #Number of images
+    ncal = cal_ims.shape[0] #Number of calibrator images.
+ 
+    #Image size     
+    sz = cal_ims.shape[1]
+
+    #This should come from a library! but to see details, lets do it manually.
+    #do the fast fourier transform of the psfs
+    cal_ims_ft = np.zeros( (ncal,sz*2,sz+1),dtype=np.complex )
+    for j in range(ncal):
+        cal_im_ft_noresamp = np.fft.rfft2(cal_ims[j,:,:])
+        cal_ims_ft[j,0:sz/2,0:sz/2+1] = cal_im_ft_noresamp[0:sz/2,0:sz/2+1]
+        cal_ims_ft[j,-sz/2:,0:sz/2+1] = cal_im_ft_noresamp[-sz/2:,0:sz/2+1]
+    return cal_ims_ft
+
 
 def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',nphot="long(4e4)",\
     nphot_scat="long(2e4)", remove_directory=True, star_r=2.0, star_m=2.0, planet_mass=0.001,\
-    planet_temp=1500.0, dist=120.0, pxsize=0.01, wav_in_um=3.776, mdisk=6e-3):
-    #nphot_scat="long(2e4)", remove_directory=True, asymmetry=False, planet=False, planet_mass=0.001):
+    planet_temp=1500.0, dist=120.0, pxsize=0.01, wav_in_um=3.776, mdisk=0.0001, plot_ims=False):
     """Return the logarithm of the probability that a disk model fits the data, given model
     parameters x.
     
@@ -71,7 +88,7 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     pxsize : float
         Pixel size in arcsec. Note that the MCMC image is sampled 2 times higher than this.
     mdisk: float
-        total disk mass in M_Sun.
+        total disk mass in M_Sun. The RadMC default is 1e-4 M_sun.
     """
    
     print("Debugging... planet_temp is: {0:5.1f}".format(planet_temp)) 
@@ -82,24 +99,13 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
                 
     #Target images.
     tgt_ims = pyfits.getdata(filename,0)
-    ntgt = tgt_ims.shape[0] #Number of target images.
 
     #PSF Library                    
     cal_ims = pyfits.getdata(filename,1)
-    cal_ims = cal_ims[1:] #!!! Mike Hack !!! The fits file *itself* should be changed instead.
-    ncal = cal_ims.shape[0] #Number of calibrator images.
-               
-    #Image size     
-    sz = cal_ims.shape[1]
-
-    #This should come from a library! but to see details, lets do it manually.
-    #do the fast fourier transform of the psfs
-    cal_ims_ft = np.zeros( (ncal,sz*2,sz+1),dtype=np.complex )
-    for j in range(ncal):
-        cal_im_ft_noresamp = np.fft.rfft2(cal_ims[j,:,:])
-        cal_ims_ft[j,0:sz/2,0:sz/2+1] = cal_im_ft_noresamp[0:sz/2,0:sz/2+1]
-        cal_ims_ft[j,-sz/2:,0:sz/2+1] = cal_im_ft_noresamp[-sz/2:,0:sz/2+1]
-
+    
+    #Resample onto half pixel size and Fourier transform.
+    cal_ims_ft = ft_and_resample(cal_ims)
+    
     #----------------------------------------------------------------------------------------
 
     #Create our working directory
@@ -138,11 +144,7 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
         mass = '[{0:7.3f}*ms]'.format(star_m)
         radii = '[{0:7.3f}*rs]'.format(star_r)
         staremis_type = '["blackbody"]'
-        
-    #No idea how (if) dust to gas worked prior to this line (?)
-    dusttogas_str = "{0:8.6f}".format(params['dtog'])
-    mdisk_str = '[{0:9.7f}*ms]'.format(mdisk)
-        
+       
     #edit the problem parameter file
     r3.setup.problemSetupDust('ppdisk', binary=False, mstar=mass, tstar=star_temp, rstar=radii,\
                                 pstar=star_pos, dustkappa_ext="['carbon']", gap_rin=gapin,\
@@ -159,16 +161,8 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     r3.image.makeImage(npix=npix_mod, sizeau=pxsize*dist/2*npix_mod, wav=wav_in_um, incl=params['inc'], posang=0.)
 
     imag_obj=r3.image.readImage('image.out') 
-    imag=imag_obj.image[:,:,0]
+    im=imag_obj.image[:,:,0]
     
-    #!!! Warning the central source flux changes a little. Maybe it is best to start 
-    #with a (slightly) convolved image. Play with this!
-    
-    #Gaussian kernel
-    kernel = np.array([[.25,.5,.25],[.5,1,.5],[.25,.5,.25]])
-    kernel /= np.sum(kernel)
-    im = nd.filters.convolve(imag,kernel)                    
-
     #Inclination angle, detailed disk properties can only come from RADMC-3D
     #Pa to add to the model image PA. Note that this is instrument (not sky) PA.
     
@@ -182,7 +176,7 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     model_chi_txt=''
     
     #This line call Keck tools
-    chi_tot = rotate_and_fit(im, params['pa'],cal_ims_ft,tgt_ims, model_type, model_chi_txt,plot_ims=False)
+    chi_tot = rotate_and_fit(im, params['pa'],cal_ims_ft,tgt_ims, model_type, model_chi_txt,plot_ims=plot_ims)
     
     #This is "cd .."
     os.chdir(os.pardir)
@@ -192,6 +186,8 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     
     if remove_directory:
         shutil.rmtree(pid_str)
+    else:
+        print("*** Figures saved in " + pid_str + " ***")
     
     #Return log likelihood
     lnlike = -0.5*chi_tot/temperature
