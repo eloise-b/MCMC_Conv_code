@@ -80,8 +80,11 @@ elif mode=='mcmc':
     pickle.dump((sampler.lnprobability,sampler.chain),chainfile)
     chainfile.close()
 
-    #Useful things
-    #np.max(sampler.flatlnprobability)
-    #np.argmax(sampler.flatlnprobability)
-    #sampler.flatchain[np.argmax(sampler.flatlnprobability)]
-    #np.exp(sampler.flatchain[np.argmax(sampler.flatlnprobability)][0:5])
+    #Print the key outputs.
+    np.set_printoptions(suppress=True)
+    np.set_printoptions(precision=3)
+    nsamp = sampler.lnprobability.shape[1]
+    ch = sampler.chain[:,nsamp//2:,:].reshape( (nsamp//2*nwalkers, len(ipar)) )
+    print(np.mean(ch,axis=0))
+    print(np.std(ch,axis=0))
+
