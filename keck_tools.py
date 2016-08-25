@@ -90,7 +90,7 @@ def rotate_and_fit(im, pa,cal_ims_ft,tgt_ims,model_type, model_chi_txt='',plot_i
     best_chi2s = np.empty( ntgt )
     best_convs = np.empty( ntgt, dtype=np.int)
     tgt_sum = np.zeros( (sz,sz) )
-    resid_sum = np.zeros( (sz,sz) )
+    model_sum = np.zeros( (sz,sz) )
     for n in range(ntgt):
         ims_shifted = np.empty( (ncal,sz,sz) )
         #Find the peak for the target
@@ -122,8 +122,8 @@ def rotate_and_fit(im, pa,cal_ims_ft,tgt_ims,model_type, model_chi_txt='',plot_i
         #Create a shifted residual image.
         tgt_sum += np.roll(np.roll(tgt_ims[n], sz//2 - xypeak_tgt[0], axis=0), 
                                                sz//2 - xypeak_tgt[1], axis=1)
-        resid_sum += np.roll(np.roll(tgt_ims[n]-best_model_ims[n], sz//2 - xypeak_tgt[0], axis=0), 
-                                                                   sz//2 - xypeak_tgt[1], axis=1)
+        model_sum += np.roll(np.roll(best_model_ims[n], sz//2 - xypeak_tgt[0], axis=0), 
+                                                        sz//2 - xypeak_tgt[1], axis=1)
         
         if plot_ims:
             #plot the best model images
@@ -145,14 +145,41 @@ def rotate_and_fit(im, pa,cal_ims_ft,tgt_ims,model_type, model_chi_txt='',plot_i
 
     if plot_ims:
         max_val = np.max(tgt_sum)
+        vmax = np.arcsinh(1/stretch)
+        vmin = np.arcsinh(-2)
         plt.clf()
-        plt.imshow(np.arcsinh(tgt_sum/max_val/stretch), interpolation='nearest',cmap=cm.cubehelix, extent=extent)
-        plt.colorbar()
+        plt.imshow(np.arcsinh(tgt_sum/max_val/stretch), interpolation='nearest',cmap=cm.cubehelix, extent=extent, vmin=vmin, vmax=vmax)
+        plt.xlabel('Offset (")')
+        plt.ylabel('Offset (")')
+        ticks = np.linspace(vmin,vmax,6)
+        cbar = plt.colorbar(ticks=ticks)
+        #Note that the following line doesn't work in interactive mode.
+        cbar.ax.set_yticklabels(["{0:5.2f}".format(y) for y in stretch*np.sinh(ticks)])
         im_name = 'target_sum.png'
         plt.savefig(im_name)
+        
         plt.clf()
-        plt.imshow(np.arcsinh(resid_sum/max_val/stretch), interpolation='nearest',cmap=cm.cubehelix, extent=extent)
-        plt.colorbar()
+        plt.imshow(np.arcsinh(model_sum/max_val/stretch), interpolation='nearest',cmap=cm.cubehelix, extent=extent, vmin=vmin, vmax=vmax)
+        plt.xlabel('Offset (")')
+        plt.ylabel('Offset (")')
+        ticks = np.linspace(vmin,vmax,6)
+        cbar = plt.colorbar(ticks=ticks)
+        #Note that the following line doesn't work in interactive mode.
+        cbar.ax.set_yticklabels(["{0:5.2f}".format(y) for y in stretch*np.sinh(ticks)])
+        im_name = 'model_sum.png'
+        plt.savefig(im_name)
+        
+        plt.clf()
+        stretched_im = np.arcsinh((tgt_sum-model_sum)/max_val/stretch)
+        vmax = np.max(stretched_im)
+        vmin = np.min(stretched_im)
+        plt.imshow(stretched_im, interpolation='nearest',cmap=cm.cubehelix, extent=extent)
+        plt.xlabel('Offset (")')
+        plt.ylabel('Offset (")')
+        ticks = np.linspace(vmin,vmax,6)
+        cbar = plt.colorbar(ticks=ticks)
+        #Note that the following line doesn't work in interactive mode.
+        cbar.ax.set_yticklabels(["{0:5.2f}".format(y) for y in stretch*np.sinh(ticks)])
         im_name = 'resid_sum.png'
         plt.savefig(im_name)
 

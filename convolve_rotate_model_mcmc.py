@@ -117,6 +117,30 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     #time.sleep(10)
     os.chdir(pid_str)
     
+    #!!! This **really** shouldn't go here but should be its own routine.
+    if plot_ims:
+        stretch=0.01
+        pxscale=0.01
+        sz=128
+        vmax = np.arcsinh(1/stretch)
+        vmin = np.arcsinh(-2)
+        extent = [-pxscale*sz/2, pxscale*sz/2, -pxscale*sz/2, pxscale*sz/2]
+        
+        plt.clf()
+        cal_sum = np.zeros((128,128))
+        for i in range(len(cal_ims)):
+            shifts = np.unravel_index(np.argmax(cal_ims[i]), (128,128))
+            cal_sum += np.roll(np.roll(cal_ims[i],64-shifts[0],axis=0),64-shifts[1],axis=1)
+        plt.imshow(np.arcsinh(cal_sum/np.max(cal_sum)/stretch), interpolation='nearest',cmap=cm.cubehelix, extent=extent, vmin=vmin, vmax=vmax)
+        plt.xlabel('Offset (")')
+        plt.ylabel('Offset (")')
+        ticks = np.linspace(vmin,vmax,6)
+        cbar = plt.colorbar(ticks=ticks)
+        #Note that the following line doesn't work in interactive mode.
+        cbar.ax.set_yticklabels(["{0:5.2f}".format(y) for y in stretch*np.sinh(ticks)])
+        im_name = 'cal_sum.png'
+        plt.savefig(im_name)
+    
     #Copy dust_kappa_carbon.inp into directory
     os.system('cp ../dustkappa_carbon.inp .')
     
