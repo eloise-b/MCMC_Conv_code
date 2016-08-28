@@ -26,6 +26,11 @@ ipar = np.array([np.log(5.10e-4), #Dust to gas
                  np.log(7327.0),   #Stellar temperature (8250 from Yeon Seok 2015)
                  0.0,0.0,0.0])     #Planet x, y, radius.
 
+ipar = np.array([  -7.559 + np.log(50),   -6.106,    2.519,    3.219,   29.32 ,  -90 + 134.982,
+          0.037,   -0.542,    8.898,    0.   ,    0.   ,    0.   ])
+ipar = np.array([  -7.559 + np.log(50),   -6.106,    2.519,    3.219,   19.32 ,  -90 + 134.982,
+          0.037,   -0.542,    8.898,    0.   ,    0.   ,    0.   ])
+
 #In [35]: sampler.flatchain[5996]
 #Out[35]: 
 #array([ -7.58035713e+00,  -6.10215030e+00,   2.52067287e+00,

@@ -19,6 +19,58 @@ from os.path import exists
 #writes the images directly to file, this should make the code run for a shorter time
 #plt.ion()
 
+def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_name='arcsinh_im.png', scale_val=None):
+    """A helper routine to make an arcsinh stretched image.
+    
+    Parameters
+    ----------
+    
+    im: numpy array
+        The input image, with bias level of 0 and arbitrary maximum.
+    stretch: float
+        After division by the maximum (or scale_val), the level to divide the data by. This
+        is the boundary between the linear and logarithmic regime.
+    asinh_vmax: float
+        The maximum value of asinh of the data. Defaults to asinh of the maximum value.
+    asinh_vmin: float
+        The minimum value of asinh of the data. Defaults to asinh of the minimum value.
+    extent: list
+        The extent parameter to be passed to imshow.
+    im_name: string
+        The name of the image file to be saved.
+    scale_val: float
+        The value to divide the data by. Defaults to max(im)
+    """
+    if not scale_val:
+        scale_val = np.max(im)
+    stretched_im = np.arcsinh(im/scale_val/stretch)
+ 
+    if asinh_vmax:
+        vmax = asinh_vmax
+    else:
+        vmax = np.max(stretched_im)
+    
+    if asinh_vmin:
+        vmin = asinh_vmin
+    else:
+        vmin = np.min(stretched_im)
+        
+    plt.clf()
+    plt.imshow(stretched_im, interpolation='nearest',cmap=cm.cubehelix, extent=extent, vmin=vmin, vmax=vmax)
+    plt.xlabel('Offset (")')
+    plt.ylabel('Offset (")')
+    ticks = np.linspace(vmin,vmax,6)
+    cbar = plt.colorbar(ticks=ticks)
+    #Note that the following line doesn't work in interactive mode.
+    if stretch <= 0.001:
+        fmt_string = "{0:5.3f}"
+    else:
+        fmt_string = "{0:5.2f}"
+    
+    cbar.ax.set_yticklabels([fmt_string.format(y) for y in stretch*np.sinh(ticks)])
+    plt.savefig(im_name)
+
+
 #-------------------------------------------------------------------------------------
 def rotate_and_fit(im, pa,cal_ims_ft,tgt_ims,model_type, model_chi_txt='',plot_ims=True,
     preconvolve=True, pxscale=0.01,
@@ -36,7 +88,14 @@ def rotate_and_fit(im, pa,cal_ims_ft,tgt_ims,model_type, model_chi_txt='',plot_i
         Fourier transform of our PSF image libaray
     tgt_ims: numpy array
         Target images to fit to.
-            
+    model_chi_txt: string
+        File name prefix for a saved model chi-squared.
+    mode_type: string
+        A string to pre-pend to each line of the saved model chi-squared file.
+    Returns
+    -------
+    chi2:
+        Chi-squared. Not returned if model_chi_txt has non-zero length.
     """
     #Set constants    
     pixel_std = 300.0 #Rough pixel standard deviation
@@ -64,14 +123,7 @@ def rotate_and_fit(im, pa,cal_ims_ft,tgt_ims,model_type, model_chi_txt='',plot_i
     
     #Output the model rotated image if needed.
     if plot_ims:
-        max_val = np.max(rotated_image)
-        plt.clf()
-        plt.imshow(np.arcsinh(rotated_image/max_val/mcmc_stretch), interpolation='nearest', cmap=cm.cubehelix, extent=extent)
-        plt.xlabel('Offset (")')
-        plt.ylabel('Offset (")')
-        plt.colorbar()
-        im_name = 'mcmc_im.png'
-        plt.savefig(im_name)
+        arcsinh_plot(rotated_image, mcmc_stretch, im_name='mcmc_im.png', extent=extent)
     
     #Chop out the central part. Note that this assumes that mod_sz is larger than 2*sz.
     rotated_image = rotated_image[mod_sz/2 - sz:mod_sz/2 + sz,mod_sz/2 - sz:mod_sz/2 + sz]
@@ -118,6 +170,7 @@ def rotate_and_fit(im, pa,cal_ims_ft,tgt_ims,model_type, model_chi_txt='',plot_i
         best_chi2s[n] = chi_squared[n,best_conv]
         best_model_ims[n] = ims_shifted[best_conv]
         best_convs[n] = best_conv
+        print("Tgt: {0:d} Cal: {1:d}".format(n,best_conv))
         
         #Create a shifted residual image.
         tgt_sum += np.roll(np.roll(tgt_ims[n], sz//2 - xypeak_tgt[0], axis=0), 
@@ -126,15 +179,13 @@ def rotate_and_fit(im, pa,cal_ims_ft,tgt_ims,model_type, model_chi_txt='',plot_i
                                                         sz//2 - xypeak_tgt[1], axis=1)
         
         if plot_ims:
-            #plot the best model images
+            #plot the stretched version of the best model image
+            arcsinh_plot(best_model_ims[n], stretch, im_name = 'model_stretch_' + str(n) + '.png', extent=extent)
+            #plot the best model images, linear scaling.
+            plt.clf()
             plt.imshow(best_model_ims[n], interpolation='nearest', extent=extent)
             im_name = 'model_im_' + str(n) + '.png'
             plt.savefig(im_name)
-            plt.clf()
-            plt.imshow(np.arcsinh(best_model_ims[n]), interpolation='nearest',cmap=cm.cubehelix, clim = (3.0,15.0), extent=extent)
-            plt.colorbar()
-            stretch_name = 'model_stretch_' + str(n) + '.png'
-            plt.savefig(stretch_name)
             plt.clf()
             plt.imshow(tgt_ims[n]-best_model_ims[n], interpolation='nearest',cmap=cm.cubehelix, extent=extent)
             plt.colorbar()
@@ -144,44 +195,9 @@ def rotate_and_fit(im, pa,cal_ims_ft,tgt_ims,model_type, model_chi_txt='',plot_i
             #generate_images(best_model_ims,n)
 
     if plot_ims:
-        max_val = np.max(tgt_sum)
-        vmax = np.arcsinh(1/stretch)
-        vmin = np.arcsinh(-2)
-        plt.clf()
-        plt.imshow(np.arcsinh(tgt_sum/max_val/stretch), interpolation='nearest',cmap=cm.cubehelix, extent=extent, vmin=vmin, vmax=vmax)
-        plt.xlabel('Offset (")')
-        plt.ylabel('Offset (")')
-        ticks = np.linspace(vmin,vmax,6)
-        cbar = plt.colorbar(ticks=ticks)
-        #Note that the following line doesn't work in interactive mode.
-        cbar.ax.set_yticklabels(["{0:5.2f}".format(y) for y in stretch*np.sinh(ticks)])
-        im_name = 'target_sum.png'
-        plt.savefig(im_name)
-        
-        plt.clf()
-        plt.imshow(np.arcsinh(model_sum/max_val/stretch), interpolation='nearest',cmap=cm.cubehelix, extent=extent, vmin=vmin, vmax=vmax)
-        plt.xlabel('Offset (")')
-        plt.ylabel('Offset (")')
-        ticks = np.linspace(vmin,vmax,6)
-        cbar = plt.colorbar(ticks=ticks)
-        #Note that the following line doesn't work in interactive mode.
-        cbar.ax.set_yticklabels(["{0:5.2f}".format(y) for y in stretch*np.sinh(ticks)])
-        im_name = 'model_sum.png'
-        plt.savefig(im_name)
-        
-        plt.clf()
-        stretched_im = np.arcsinh((tgt_sum-model_sum)/max_val/stretch)
-        vmax = np.max(stretched_im)
-        vmin = np.min(stretched_im)
-        plt.imshow(stretched_im, interpolation='nearest',cmap=cm.cubehelix, extent=extent)
-        plt.xlabel('Offset (")')
-        plt.ylabel('Offset (")')
-        ticks = np.linspace(vmin,vmax,6)
-        cbar = plt.colorbar(ticks=ticks)
-        #Note that the following line doesn't work in interactive mode.
-        cbar.ax.set_yticklabels(["{0:5.2f}".format(y) for y in stretch*np.sinh(ticks)])
-        im_name = 'resid_sum.png'
-        plt.savefig(im_name)
+        arcsinh_plot(tgt_sum, stretch, asinh_vmin=-2, im_name='target_sum.png', extent=extent)
+        arcsinh_plot(model_sum, stretch, asinh_vmin=-2, im_name='model_sum.png', extent=extent)
+        arcsinh_plot(tgt_sum-model_sum, stretch, im_name = 'resid_sum.png', extent=extent, scale_val=np.max(tgt_sum))
 
     #TESTING: save best_chi2s and PSFs.
     #np.savetxt('best_chi2s.txt', best_chi2s)
