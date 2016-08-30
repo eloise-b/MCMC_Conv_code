@@ -3,7 +3,7 @@ import multiprocessing
 import numpy as np
 import emcee
 import pickle
-from convolve_rotate_model_mcmc import lnprob_conv_disk_radmc3d
+from mcinmc import lnprob_conv_disk_radmc3d
 import pdb
 import radmc3dPy as r3
 

@@ -30,29 +30,10 @@ import astropy.io.fits as pyfits
 import pdb
 import os
 import shutil
-from keck_tools import rotate_and_fit
+from imtools import *
 import pickle
 #import time
 import multiprocessing
-
-def ft_and_resample(cal_ims):
-    """Create the Fourier transform of a set of images, resampled onto half the
-    pixel scale """
-    #Number of images
-    ncal = cal_ims.shape[0] #Number of calibrator images.
- 
-    #Image size     
-    sz = cal_ims.shape[1]
-
-    #This should come from a library! but to see details, lets do it manually.
-    #do the fast fourier transform of the psfs
-    cal_ims_ft = np.zeros( (ncal,sz*2,sz+1),dtype=np.complex )
-    for j in range(ncal):
-        cal_im_ft_noresamp = np.fft.rfft2(cal_ims[j,:,:])
-        cal_ims_ft[j,0:sz/2,0:sz/2+1] = cal_im_ft_noresamp[0:sz/2,0:sz/2+1]
-        cal_ims_ft[j,-sz/2:,0:sz/2+1] = cal_im_ft_noresamp[-sz/2:,0:sz/2+1]
-    return cal_ims_ft
-
 
 def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',nphot="long(4e4)",\
     nphot_scat="long(2e4)", remove_directory=True, star_r=2.0, star_m=2.0, planet_mass=0.001,\
