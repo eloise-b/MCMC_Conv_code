@@ -1,8 +1,11 @@
 '''
-Copyright Eloise Birchall, Australian National University
+Copyright Eloise Birchall, Mike Ireland, Australian National University
 eloise.birchall@anu.edu.au
 
 Function to add a planet to the disk
+
+Information on how to generate the required Gaussian is adapted from:
+https://gist.github.com/andrewgiessel/4635563
 '''
 
 from __future__ import print_function, division

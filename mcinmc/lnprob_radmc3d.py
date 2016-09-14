@@ -1,5 +1,5 @@
 """
-Copyright Eloise Birchall, Australian National University
+Copyright Eloise Birchall, Mike Ireland,  Australian National University
 eloise.birchall@anu.edu.au
 
 Script to do convolve rotate model, over the grid of models that has been created.
@@ -37,7 +37,8 @@ import multiprocessing
 
 def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',nphot="long(4e4)",\
     nphot_scat="long(2e4)", remove_directory=True, star_r=2.0, star_m=2.0, planet_mass=0.001,\
-    planet_temp=1500.0, dist=120.0, pxsize=0.01, wav_in_um=3.776, mdisk=0.0001, plot_ims=False):
+    planet_temp=1500.0, dist=120.0, pxsize=0.01, wav_in_um=3.776, mdisk=0.0001, plot_ims=False,\
+    save_im_data=False):
     """Return the logarithm of the probability that a disk model fits the data, given model
     parameters x.
     

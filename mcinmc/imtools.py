@@ -1,6 +1,11 @@
 '''
-Copyright Eloise Birchall, Australian National University
+
+Copyright Eloise Birchall, Mike Ireland, Australian National University
 eloise.birchall@anu.edu.au
+
+Code that rotates the model imgae and compares it with the data, also has option to make
+images of the models and the data and the residuals.
+
 '''
 
 from __future__ import print_function, division
@@ -37,7 +42,8 @@ def ft_and_resample(cal_ims):
         cal_ims_ft[j,-sz/2:,0:sz/2+1] = cal_im_ft_noresamp[-sz/2:,0:sz/2+1]
     return cal_ims_ft
 
-def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_name='arcsinh_im.png', scale_val=None):
+def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_name='arcsinh_im.png', \
+    scale_val=None):
     """A helper routine to make an arcsinh stretched image.
     
     Parameters
@@ -91,7 +97,7 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
 
 #-------------------------------------------------------------------------------------
 def rotate_and_fit(im, pa,cal_ims_ft,tgt_ims,model_type, model_chi_txt='',plot_ims=True,
-    preconvolve=True, pxscale=0.01,
+    preconvolve=True, pxscale=0.01, save_im_data=True,
     model_chi_dir = '/Users/eloisebirchall/Documents/Uni/Masters/radmc-3d/IRS_48_grid/MCMC_stuff/'):
     """Rotate a model image, and find the best fit. Output (for now!) 
     goes to file in the current directory.
@@ -216,7 +222,21 @@ def rotate_and_fit(im, pa,cal_ims_ft,tgt_ims,model_type, model_chi_txt='',plot_i
         arcsinh_plot(tgt_sum, stretch, asinh_vmin=-2, im_name='target_sum.png', extent=extent)
         arcsinh_plot(model_sum, stretch, asinh_vmin=-2, im_name='model_sum.png', extent=extent)
         arcsinh_plot(tgt_sum-model_sum, stretch, im_name = 'resid_sum.png', extent=extent, scale_val=np.max(tgt_sum))
-
+    
+    #Save the final image data as a pickle, so that it can be read by another code to make
+    #images for a paper later
+    if save_im_data:
+        tgt_file = open('tgt_sum.pkl','w')
+        pickle.dump(tgt_sum,tgt_file)
+        tgt_file.close()
+        model_file = open('model_sum.pkl','w')
+        pickle.dump(model_sum,model_file)
+        model_file.close()
+        res_sum = tgt_sum-model_sum
+        res_file = open('res_sum.pkl','w')
+        pickle.dump(res_sum,res_file)
+        res_file.close()
+    
     #TESTING: save best_chi2s and PSFs.
     #np.savetxt('best_chi2s.txt', best_chi2s)
     #np.savetxt('best_psfs.txt', best_convs, fmt="%d")
