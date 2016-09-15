@@ -97,7 +97,7 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
 
 #-------------------------------------------------------------------------------------
 def rotate_and_fit(im, pa,cal_ims_ft,tgt_ims,model_type, model_chi_txt='',plot_ims=True,
-    preconvolve=True, pxscale=0.01, save_im_data=True,
+    preconvolve=True, pxscale=0.01, save_im_data=True, make_sed=True,
     model_chi_dir = '/Users/eloisebirchall/Documents/Uni/Masters/radmc-3d/IRS_48_grid/MCMC_stuff/'):
     """Rotate a model image, and find the best fit. Output (for now!) 
     goes to file in the current directory.
@@ -236,6 +236,30 @@ def rotate_and_fit(im, pa,cal_ims_ft,tgt_ims,model_type, model_chi_txt='',plot_i
         res_file = open('res_sum.pkl','w')
         pickle.dump(res_sum,res_file)
         res_file.close()
+    
+    if make_sed:
+        #SED stuff
+        os.system('radmc3d sed')
+        #os.system('radmc3d sed incl 55.57 phi 130.1')  
+        #os.system('radmc3d spectrum loadlambda incl 55.57 phi 130.1')           
+        
+        spec = np.loadtxt('spectrum.out', skiprows=3)
+        
+        #Plot the SED
+        #define c in microns
+        c = 2.99792458*(10**10)
+        nu = c / spec[:,0]
+        plt.loglog(spec[:,0],nu*spec[:,1], label='model')
+        plt.axis((1e-1,1e4,1e-16,1e-6))
+        plt.xlabel('Wavelength (microns)')
+        plt.ylabel('nu*F_nu')
+        plt.legend(loc='best')
+        title = 'SED'
+        plt.title(title)
+        name = 'SED.eps'
+        plt.savefig(name)
+        plt.clf()
+        
     
     #TESTING: save best_chi2s and PSFs.
     #np.savetxt('best_chi2s.txt', best_chi2s)

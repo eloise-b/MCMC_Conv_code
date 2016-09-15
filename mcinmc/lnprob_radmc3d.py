@@ -37,8 +37,8 @@ import multiprocessing
 
 def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',nphot="long(4e4)",\
     nphot_scat="long(2e4)", remove_directory=True, star_r=2.0, star_m=2.0, planet_mass=0.001,\
-    planet_temp=1500.0, dist=120.0, pxsize=0.01, wav_in_um=3.776, mdisk=0.0001, plot_ims=False,\
-    save_im_data=False):
+    planet_temp=1500.0, dist=120.0, pxsize=0.01, wav_in_um=3.776, mdisk=0.0001, r_dust=0.3,\
+    star_temp=9000.0, plot_ims=False, save_im_data=False, make_sed=False):
     """Return the logarithm of the probability that a disk model fits the data, given model
     parameters x.
     
@@ -71,13 +71,20 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
         Pixel size in arcsec. Note that the MCMC image is sampled 2 times higher than this.
     mdisk: float
         total disk mass in M_Sun. The RadMC default is 1e-4 M_sun.
+    r_dust = float
+        the inner radius of the inner disk in au
+    star_temp = float
+        Temperature of the star in Kelvin
     """
    
     print("Debugging... planet_temp is: {0:5.1f}".format(planet_temp)) 
     #Parameters that go into the code
-    params = {'dtog':np.exp(x[0]),'gap_depletion':np.exp(x[1]),'r_in':np.exp(x[2]),\
-            'r_wall':np.exp(x[3]),'inc':x[4],'pa':x[5],'star_x':x[6],'star_y':x[7],\
-            'star_temp':np.exp(x[8]),'planet_x':x[9], 'planet_y':x[10], 'planet_r':x[11]}
+    #params = {'dtog':np.exp(x[0]),'gap_depletion':np.exp(x[1]),'r_in':np.exp(x[2]),\
+    #        'r_wall':np.exp(x[3]),'inc':x[4],'pa':x[5],'star_x':x[6],'star_y':x[7],\
+    #        'star_temp':np.exp(x[8]),'planet_x':x[9], 'planet_y':x[10], 'planet_r':x[11]}
+    params = {'dtog':np.exp(x[0]),'gap_depletion1':np.exp(x[1]),'gap_depletion2':np.exp(x[2]),\
+            'r_in':np.exp(x[3]),'r_wall':np.exp(x[4]),'inc':x[5],'pa':x[6],'star_x':x[7],\
+            'star_y':x[8],'planet_x':x[9], 'planet_y':x[10], 'planet_r':x[11]}
                 
     #Target images.
     tgt_ims = pyfits.getdata(filename,0)
@@ -129,10 +136,10 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     r3.analyze.writeDefaultParfile('ppdisk')
     
     #Convert parameters to RadMC3D strings
-    r_in = '{0:7.3f}*au'.format(params['r_in'])
-    gapin  = '[{0:7.3f}*au, {1:7.3f}*au]'.format(params['r_in'],params['r_wall'])
-    gapout = '[{0:7.3f}*au, 60*au]'.format(params['r_wall'])
-    gap_depletion = '[{0:10.3e}, 1e-1]'.format(params['gap_depletion'])
+    r_in = '{0:7.3f}*au'.format(r_dust)
+    gapin  = '[0.0*au {0:7.3f}*au, {1:7.3f}*au]'.format(params['r_in'],params['r_wall'])
+    gapout = '[{0:7.3f}*au, {1:7.3f}*au, 60*au]'.format(params['r_in'],params['r_wall'])
+    gap_depletion = '[{0:10.3e}, {1:10.3e}, 1e-1]'.format(params['gap_depletion1'],params['gap_depletion2'])
     dusttogas_str = "{0:8.6f}".format(params['dtog'])
     mdisk_str = '[{0:9.7f}*ms]'.format(mdisk)
     x_bound = '[{0:7.3f}*au, ({0:7.3f}+0.1)*au, {1:7.3f}*au, {1:7.3f}*1.1*au, 100*au]'.format(params['r_in'],params['r_wall'])
@@ -140,13 +147,13 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     n_z = 60
     if params['planet_r'] != 0.0:
         star_pos = '[[{0:7.3f}*au,{1:7.3f}*au,0.0],[{2:7.3f}*au,{3:7.3f}*au,0.0]]'.format(params['star_x'],params['star_y'],params['planet_x'],params['planet_y'])
-        star_temp = '[{0:7.3f}, {1:7.3f}]'.format(params['star_temp'],planet_temp)
+        star_temp = '[{0:7.3f}, {1:7.3f}]'.format(star_temp,planet_temp)
         mass = '[{0:7.3f}*ms, {1:7.3f}*ms]'.format(star_m,planet_mass)
         radii = '[{0:7.3f}*rs, {1:7.3f}*rs]'.format(star_r,params['planet_r']) 
         staremis_type = '["blackbody","blackbody"]' 
     else:
         star_pos = '[{0:7.3f}*au,{1:7.3f}*au,0.0]'.format(params['star_x'],params['star_y'])
-        star_temp = '[{0:7.3f}]'.format(params['star_temp'])
+        star_temp = '[{0:7.3f}]'.format(star_temp)
         mass = '[{0:7.3f}*ms]'.format(star_m)
         radii = '[{0:7.3f}*rs]'.format(star_r)
         staremis_type = '["blackbody"]'
@@ -173,16 +180,17 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     #Pa to add to the model image PA. Note that this is instrument (not sky) PA.
     
     # Define model type for if making model chi txt
-    model_type = str(params['dtog']) + ',' + str(params['gap_depletion']) + ',' + str(params['r_in']) + ','\
-                 + str(params['r_wall']) + ',' + str(params['inc']) + ',' + str(params['pa']) + ',' \
-                 + str(params['star_x']) + ',' + str(params['star_y']) + ',' + str(params['star_temp']) \
-                 + ',' + str(params['planet_x']) + ',' + str(params['planet_y']) + ',' \
-                + str(params['planet_r'])
+    model_type = str(params['dtog']) + ',' + str(params['gap_depletion1']) + ','  + \
+                 str(params['gap_depletion2']) + ',' + str(params['r_in']) + ',' \
+                 + str(params['r_wall']) + ',' + str(params['inc']) + ',' + str(params['pa'])\
+                 + ',' + str(params['star_x']) + ',' + str(params['star_y']) + ',' + \
+                 str(params['planet_x']) + ',' + str(params['planet_y']) + ',' str(params['planet_r'])
     
     model_chi_txt=''
     
     #This line call Keck tools
-    chi_tot = rotate_and_fit(im, params['pa'],cal_ims_ft,tgt_ims, model_type, model_chi_txt,plot_ims=plot_ims)
+    chi_tot = rotate_and_fit(im, params['pa'],cal_ims_ft,tgt_ims, model_type, model_chi_txt,\
+               plot_ims=plot_ims,save_im_data=save_im_data, make_sed=make_sed)
     
     #This is "cd .."
     os.chdir(os.pardir)
@@ -212,9 +220,9 @@ if __name__ == "__main__":
     print('nwalkers=',nwalkers)
     threads = multiprocessing.cpu_count()
     #set parameters to 0.0 if you don't want them investigated
-    ipar = np.array([np.log(6.894e-3),np.log(3.012e-3),np.log(11.22),np.log(22.13),48.85,129.5,0.0,0.0,np.log(8000.0),0.0,0.0,0.0])
+    ipar = np.array([np.log(6.894e-3),np.log(6e-6),np.log(3.012e-3),np.log(11.22),np.log(22.13),48.85,129.5,0.0,0.0,0.0,0.0,0.0])
     #set parameter in cloud to zero to not investigate it
-    ipar_sig = np.array([.01,.01,.01,.01,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.001])
+    ipar_sig = np.array([.01,.01,.01,.01,.01,0.1,0.1,0.1,0.1,0.1,0.1,0.001])
     ndim = len(ipar)
     #Could use parameters of random.normal instead of below. But Mike likes this way.
     p0 = [ipar + np.random.normal(size=ndim)*ipar_sig for i in range(nwalkers)]

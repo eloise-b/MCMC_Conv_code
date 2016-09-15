@@ -47,7 +47,8 @@ if mode=='test':
         lnprob[i] = lnprob_conv_disk_radmc3d(ipar_test, remove_directory=False, **kwargs)
 elif mode=='plot':
     #kwargs['nphot']="long(1.2e5)"
-    lnprob = lnprob_conv_disk_radmc3d(ipar, remove_directory=False, plot_ims=True, **kwargs)
+    lnprob = lnprob_conv_disk_radmc3d(ipar, remove_directory=False, plot_ims=True, save_im_data=True,\
+                                      **kwargs)
 elif mode=='mcmc':
     ndim = len(ipar)
     #Could use parameters of random.normal instead of below, if you prefer that.
