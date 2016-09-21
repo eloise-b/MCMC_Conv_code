@@ -19,6 +19,7 @@ import opticstools as ot
 import pdb
 import os
 from os.path import exists
+import pickle
 #from image_script import *
 #Have plt.ion commented out so that the code doesn't generate the image windows and just 
 #writes the images directly to file, this should make the code run for a shorter time
