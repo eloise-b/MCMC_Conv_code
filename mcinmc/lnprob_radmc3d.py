@@ -38,8 +38,9 @@ import multiprocessing
 def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',nphot="long(4e4)",\
     nphot_scat="long(2e4)", remove_directory=True, star_r=2.0, star_m=2.0, planet_mass=0.001,\
     planet_temp=1500.0, dist=120.0, pxsize=0.01, wav_in_um=3.776, mdisk=0.0001, r_dust=0.3,\
-    star_temp=9000.0, plot_ims=False, save_im_data=False, make_sed=False):
-    """Return the logarithm of the probability that a disk model fits the data, given model
+    star_temp=9000.0, kappa = "['carbon']", Kurucz= True, plot_ims=False, save_im_data=False, make_sed=False):
+    """
+    Return the logarithm of the probability that a disk model fits the data, given model
     parameters x.
     
     Parameters
@@ -75,6 +76,11 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
         the inner radius of the inner disk in au
     star_temp = float
         Temperature of the star in Kelvin
+    kappa = string
+        this is the name of the dustkappa file that you want to use
+    Kurucz: Boolean
+        this is the type of emission you want the star to have, blackbody or interpolated 
+        from a Kurucz model - Kurucz will happen if true
     """
    
     print("Debugging... planet_temp is: {0:5.1f}".format(planet_temp)) 
@@ -94,6 +100,9 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     
     #Resample onto half pixel size and Fourier transform.
     cal_ims_ft = ft_and_resample(cal_ims)
+    
+    #Get the pa information for the object from the fits file
+    skypa = pyfits.getdata(filename,2)['pa'] 
     
     #----------------------------------------------------------------------------------------
 
@@ -150,17 +159,23 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
         star_temp = '[{0:7.3f}, {1:7.3f}]'.format(star_temp,planet_temp)
         mass = '[{0:7.3f}*ms, {1:7.3f}*ms]'.format(star_m,planet_mass)
         radii = '[{0:7.3f}*rs, {1:7.3f}*rs]'.format(star_r,params['planet_r']) 
-        staremis_type = '["blackbody","blackbody"]' 
+        if Kurucz:
+            staremis_type = '["kurucz","blackbody"]'
+        else: 
+            staremis_type = '["blackbody","blackbody"]' 
     else:
         star_pos = '[{0:7.3f}*au,{1:7.3f}*au,0.0]'.format(params['star_x'],params['star_y'])
         star_temp = '[{0:7.3f}]'.format(star_temp)
         mass = '[{0:7.3f}*ms]'.format(star_m)
         radii = '[{0:7.3f}*rs]'.format(star_r)
-        staremis_type = '["blackbody"]'
+        if Kurucz:
+            staremis_type = '["kurucz"]'
+        else:
+            staremis_type = '["blackbody"]'
        
     #edit the problem parameter file
     r3.setup.problemSetupDust('ppdisk', binary=False, mstar=mass, tstar=star_temp, rstar=radii,\
-                                pstar=star_pos, dustkappa_ext="['carbon']", gap_rin=gapin,\
+                                pstar=star_pos, dustkappa_ext=kappa, gap_rin=gapin,\
                                 gap_rout=gapout, gap_drfact=gap_depletion, dusttogas=dusttogas_str,\
                                 rin=r_in,nphot=nphot,nphot_scat=nphot_scat, nx=n_x, xbound=x_bound,\
                                 nz=n_z, srim_rout=1.0, staremis_type=staremis_type,mdisk=mdisk_str)
@@ -184,7 +199,7 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
                  str(params['gap_depletion2']) + ',' + str(params['r_in']) + ',' \
                  + str(params['r_wall']) + ',' + str(params['inc']) + ',' + str(params['pa'])\
                  + ',' + str(params['star_x']) + ',' + str(params['star_y']) + ',' + \
-                 str(params['planet_x']) + ',' + str(params['planet_y']) + ',' str(params['planet_r'])
+                 str(params['planet_x']) + ',' + str(params['planet_y']) + ',' + str(params['planet_r'])
     
     model_chi_txt=''
     
