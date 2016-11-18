@@ -89,7 +89,7 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     #        'r_wall':np.exp(x[3]),'inc':x[4],'pa':x[5],'star_x':x[6],'star_y':x[7],\
     #        'star_temp':np.exp(x[8]),'planet_x':x[9], 'planet_y':x[10], 'planet_r':x[11]}
     params = {'dtog':np.exp(x[0]),'gap_depletion1':np.exp(x[1]),'gap_depletion2':np.exp(x[2]),\
-            'r_in':np.exp(x[3]),'r_wall':np.exp(x[4]),'inc':x[5],'pa':x[6],'star_x':x[7],\
+            'r_in':np.exp(x[3]),'r_wall':np.exp(x[4]),'inc':x[5],'pa_sky':x[6],'star_x':x[7],\
             'star_y':x[8],'planet_x':x[9], 'planet_y':x[10], 'planet_r':x[11]}
                 
     #Target images.
@@ -102,7 +102,7 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     cal_ims_ft = ft_and_resample(cal_ims)
     
     #Get the pa information for the object from the fits file
-    skypa = pyfits.getdata(filename,2)['pa'] 
+    pa_vert = pyfits.getdata(filename,2)['pa'] 
     
     #----------------------------------------------------------------------------------------
 
@@ -197,14 +197,14 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     # Define model type for if making model chi txt
     model_type = str(params['dtog']) + ',' + str(params['gap_depletion1']) + ','  + \
                  str(params['gap_depletion2']) + ',' + str(params['r_in']) + ',' \
-                 + str(params['r_wall']) + ',' + str(params['inc']) + ',' + str(params['pa'])\
+                 + str(params['r_wall']) + ',' + str(params['inc']) + ',' + str(params['pa_sky'])\
                  + ',' + str(params['star_x']) + ',' + str(params['star_y']) + ',' + \
                  str(params['planet_x']) + ',' + str(params['planet_y']) + ',' + str(params['planet_r'])
     
     model_chi_txt=''
     
     #This line call Keck tools
-    chi_tot = rotate_and_fit(im, params['pa'],cal_ims_ft,tgt_ims, model_type, model_chi_txt,\
+    chi_tot = rotate_and_fit(im, pa_vert, params['pa_sky'],cal_ims_ft,tgt_ims, model_type, model_chi_txt,\
                plot_ims=plot_ims,save_im_data=save_im_data, make_sed=make_sed)
     
     #This is "cd .."

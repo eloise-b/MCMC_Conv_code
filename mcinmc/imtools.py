@@ -85,7 +85,7 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
     plt.xlabel('Offset (")')
     plt.ylabel('Offset (")')
     ticks = np.linspace(vmin,vmax,6)
-    cbar = plt.colorbar(ticks=ticks)
+    cbar = plt.colorbar(ticks=ticks, pad=0.0)
     #Note that the following line doesn't work in interactive mode.
     if stretch <= 0.001:
         fmt_string = "{0:5.3f}"
@@ -93,11 +93,11 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
         fmt_string = "{0:5.2f}"
     
     cbar.ax.set_yticklabels([fmt_string.format(y) for y in stretch*np.sinh(ticks)])
-    plt.savefig(im_name)
+    plt.savefig(im_name, bbox_inches='tight')
 
 
 #-------------------------------------------------------------------------------------
-def rotate_and_fit(im, pa,cal_ims_ft,tgt_ims,model_type, model_chi_txt='',plot_ims=True,
+def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi_txt='',plot_ims=True,
     preconvolve=True, pxscale=0.01, save_im_data=True, make_sed=True,
     model_chi_dir = '/Users/eloisebirchall/Documents/Uni/Masters/radmc-3d/IRS_48_grid/MCMC_stuff/'):
     """Rotate a model image, and find the best fit. Output (for now!) 
@@ -107,8 +107,10 @@ def rotate_and_fit(im, pa,cal_ims_ft,tgt_ims,model_type, model_chi_txt='',plot_i
     ----------
     im: numpy array
         The image from radMC3D, which has double the sampling of the data.
-    p: float
-        Position angle that we will rotate the RADMC image by
+    pa_vert : array
+        vertical pa from each of the data images
+    pa_sky: float
+        Position angle on sky that we will combine with vertical to rotate the RADMC image by
     cal_ims_ft: numpy complex array
         Fourier transform of our PSF image libaray
     tgt_ims: numpy array
@@ -133,6 +135,9 @@ def rotate_and_fit(im, pa,cal_ims_ft,tgt_ims,model_type, model_chi_txt='',plot_i
     stretch=0.01
     mcmc_stretch=1e-4
     
+    #the chip pa to be used
+    pa = pa_sky - pa_vert + 360.
+    
     #-------------------------------------------------
     #Convolve the model image with a kernel to maintain flux conservation on rotation.
     if (preconvolve):
@@ -144,21 +149,31 @@ def rotate_and_fit(im, pa,cal_ims_ft,tgt_ims,model_type, model_chi_txt='',plot_i
     
     #-------------------------------------------------
     # Do the rotation Corresponding to the position angle input.  
-    rotated_image = nd.interpolation.rotate(im, pa, reshape=False, order=1)
-    
+    rotated_ims = []
+    rotated_ims_ft = []
+    for i in range(ntgt):
+        rotated_image = nd.interpolation.rotate(im, pa_vert[i], reshape=False, order=1)
+        if plot_ims:
+            arcsinh_plot(rotated_image, mcmc_stretch, im_name='mcmc_im.png', extent=extent)
+        rotated_image = rotated_image[mod_sz/2 - sz:mod_sz/2 + sz,mod_sz/2 - sz:mod_sz/2 + sz]
+        rotated_image_ft = np.fft.rfft2(np.fft.fftshift(rotated_image))
+        rotated_ims.append(rotated_image)
+        rotated_ims_ft.append(rotated_image_ft)
+    rotated_image = np.array(rotated_ims)
+        
     #Output the model rotated image if needed.
-    if plot_ims:
-        arcsinh_plot(rotated_image, mcmc_stretch, im_name='mcmc_im.png', extent=extent)
+    #if plot_ims:
+    #    arcsinh_plot(rotated_image, mcmc_stretch, im_name='mcmc_im.png', extent=extent)
     
     #Chop out the central part. Note that this assumes that mod_sz is larger than 2*sz.
-    rotated_image = rotated_image[mod_sz/2 - sz:mod_sz/2 + sz,mod_sz/2 - sz:mod_sz/2 + sz]
+    #rotated_image = rotated_image[mod_sz/2 - sz:mod_sz/2 + sz,mod_sz/2 - sz:mod_sz/2 + sz]
     #rotated_image = ot.rebin(rotated_image, (mod_sz/2,mod_sz/2))[mod_sz/4 - sz/2:mod_sz/4 + sz/2,mod_sz/4 - sz/2:mod_sz/4 + sz/2]
-    rotated_image_ft = np.fft.rfft2(np.fft.fftshift(rotated_image))
-    conv_ims = np.empty( (ncal,2*sz,2*sz) )
+    #rotated_image_ft = np.fft.rfft2(np.fft.fftshift(rotated_image))
+    conv_ims = np.empty( (ncal*ntgt,2*sz,2*sz) )
 
     #Convolve all the point-spread-function images with the model.
-    for j in range(ncal):
-        conv_ims[j,:,:] = np.fft.irfft2(cal_ims_ft[j]*rotated_image_ft)
+    #for j in range(ncal):
+    #    conv_ims[j,:,:] = np.fft.irfft2(cal_ims_ft[j]*rotated_image_ft)
      
     #Calculating the best model and chi squared    
     #Go through the target images, find the best fitting calibrator image and record the chi-sqaured.
@@ -174,6 +189,7 @@ def rotate_and_fit(im, pa,cal_ims_ft,tgt_ims,model_type, model_chi_txt='',plot_i
         xypeak_tgt = np.argmax(tgt_ims[n])
         xypeak_tgt = np.unravel_index(xypeak_tgt, tgt_ims[n].shape)
         for j in range(ncal):
+            conv_ims[j,:,:] = np.fft.irfft2(cal_ims_ft[j]*rotated_image_ft[n])
             #Do a dodgy shift to the peak.
             xypeak_conv = np.argmax(conv_ims[j])
             xypeak_conv = np.unravel_index(xypeak_conv, conv_ims[j].shape)
@@ -210,12 +226,12 @@ def rotate_and_fit(im, pa,cal_ims_ft,tgt_ims,model_type, model_chi_txt='',plot_i
             plt.clf()
             plt.imshow(best_model_ims[n], interpolation='nearest', extent=extent)
             im_name = 'model_im_' + str(n) + '.png'
-            plt.savefig(im_name)
+            plt.savefig(im_name, bbox_inches='tight')
             plt.clf()
             plt.imshow(tgt_ims[n]-best_model_ims[n], interpolation='nearest',cmap=cm.cubehelix, extent=extent)
-            plt.colorbar()
+            plt.colorbar(pad=0.0)
             stretch_name = 'target-model_' + str(n) + '.png'
-            plt.savefig(stretch_name)
+            plt.savefig(stretch_name, bbox_inches='tight')
             plt.clf()
             #generate_images(best_model_ims,n)
 
@@ -237,6 +253,9 @@ def rotate_and_fit(im, pa,cal_ims_ft,tgt_ims,model_type, model_chi_txt='',plot_i
         res_file = open('res_sum.pkl','w')
         pickle.dump(res_sum,res_file)
         res_file.close()
+        rot_mod_file = open('rot_mod.pkl','w')
+        pickle.dump(rotated_image,rot_mod_file)
+        rot_mod_file.close()
     
     if make_sed:
         #SED stuff
