@@ -136,8 +136,10 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
     mcmc_stretch=1e-4
     
     #the chip pa to be used
-    pa = pa_sky - pa_vert + 360.
-    
+    pa =[]
+    for p in range(len(pa_vert)):
+        pa_c = pa_sky - pa_vert[p] + 360.
+        pa.append(pa_c)
     #-------------------------------------------------
     #Convolve the model image with a kernel to maintain flux conservation on rotation.
     if (preconvolve):
@@ -152,15 +154,16 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
     rotated_ims = []
     rotated_ims_ft = []
     for i in range(ntgt):
-        rotated_image = nd.interpolation.rotate(im, pa_vert[i], reshape=False, order=1)
+        rotated_image = nd.interpolation.rotate(im, pa[i], reshape=False, order=1)
         if plot_ims:
-            arcsinh_plot(rotated_image, mcmc_stretch, im_name='mcmc_im.png', extent=extent)
+            arcsinh_plot(rotated_image, mcmc_stretch, im_name='mcmc_im_'+str(i)+'.png', extent=extent)
         rotated_image = rotated_image[mod_sz/2 - sz:mod_sz/2 + sz,mod_sz/2 - sz:mod_sz/2 + sz]
         rotated_image_ft = np.fft.rfft2(np.fft.fftshift(rotated_image))
         rotated_ims.append(rotated_image)
         rotated_ims_ft.append(rotated_image_ft)
     rotated_image = np.array(rotated_ims)
-        
+    rotated_image_ft = np.array(rotated_ims_ft)
+    
     #Output the model rotated image if needed.
     #if plot_ims:
     #    arcsinh_plot(rotated_image, mcmc_stretch, im_name='mcmc_im.png', extent=extent)
@@ -169,7 +172,7 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
     #rotated_image = rotated_image[mod_sz/2 - sz:mod_sz/2 + sz,mod_sz/2 - sz:mod_sz/2 + sz]
     #rotated_image = ot.rebin(rotated_image, (mod_sz/2,mod_sz/2))[mod_sz/4 - sz/2:mod_sz/4 + sz/2,mod_sz/4 - sz/2:mod_sz/4 + sz/2]
     #rotated_image_ft = np.fft.rfft2(np.fft.fftshift(rotated_image))
-    conv_ims = np.empty( (ncal*ntgt,2*sz,2*sz) )
+    #conv_ims = np.empty( (ncal*ntgt,2*sz,2*sz) )
 
     #Convolve all the point-spread-function images with the model.
     #for j in range(ncal):
@@ -188,6 +191,7 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         #Find the peak for the target
         xypeak_tgt = np.argmax(tgt_ims[n])
         xypeak_tgt = np.unravel_index(xypeak_tgt, tgt_ims[n].shape)
+        conv_ims = np.empty( (ncal,2*sz,2*sz) )
         for j in range(ncal):
             conv_ims[j,:,:] = np.fft.irfft2(cal_ims_ft[j]*rotated_image_ft[n])
             #Do a dodgy shift to the peak.

@@ -140,7 +140,10 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
         plt.savefig(im_name)
     
     #Copy dust_kappa_carbon.inp into directory
-    os.system('cp ../dustkappa_carbon.inp .')
+    if kappa == "['carbon']":
+        os.system('cp ../dustkappa_carbon.inp .')
+    if kappa == "['56e-3_pah']":
+        os.system('cp ../dustkappa_56e-3_pah.inp .')
     
     r3.analyze.writeDefaultParfile('ppdisk')
     
