@@ -65,7 +65,7 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     planet_m = float
         mass of planet in solar masses, will be converted to Radmc input later
     planet_temp = float
-        temperature of planet in K
+        temperature of planet in K - must be 3500K or greater if model type is Kurucz
     dist: float
         Distance in pc
     pxsize : float
@@ -160,7 +160,7 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
         mass = '[{0:7.3f}*ms, {1:7.3f}*ms]'.format(star_m,planet_mass)
         radii = '[{0:7.3f}*rs, {1:7.3f}*rs]'.format(star_r,params['planet_r']) 
         if Kurucz:
-            staremis_type = '["kurucz","blackbody"]'
+            staremis_type = '["kurucz","kurucz"]'
         else: 
             staremis_type = '["blackbody","blackbody"]' 
     else:
