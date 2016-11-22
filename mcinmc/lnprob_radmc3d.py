@@ -147,6 +147,13 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     
     r3.analyze.writeDefaultParfile('ppdisk')
     
+    #Make corrections if the r_in and r_wall are around the wrong way
+    if params['r_in'] > params['r_wall']:
+        r_in = params['r_in']
+        r_wall = params['r_wall']
+        params['r_wall'] = r_in
+        params['r_in'] = r_wall
+    
     #Convert parameters to RadMC3D strings
     r_in = '{0:7.3f}*au'.format(r_dust)
     gapin  = '[0.0*au {0:7.3f}*au, {1:7.3f}*au]'.format(params['r_in'],params['r_wall'])
@@ -230,7 +237,25 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     c.close()
         
     return lnlike
+'''
+def lnprior(theta):
+    #params = {'dtog':np.exp(x[0]),'gap_depletion1':np.exp(x[1]),'gap_depletion2':np.exp(x[2]),\
+    #        'r_in':np.exp(x[3]),'r_wall':np.exp(x[4]),'inc':x[5],'pa_sky':x[6],'star_x':x[7],\
+    #        'star_y':x[8],'planet_x':x[9], 'planet_y':x[10], 'planet_r':x[11]}
+    params['r_in'], params['r_wall'] = theta
+    if params['r_in'] < params['r_wall']:
+        return 0.0
+    return -np.inf
     
+def lnprob(theta, x, temperature=10000.0, filename='good_ims.fits',nphot="long(4e4)",\
+    nphot_scat="long(2e4)", remove_directory=True, star_r=2.0, star_m=2.0, planet_mass=0.001,\
+    planet_temp=1500.0, dist=120.0, pxsize=0.01, wav_in_um=3.776, mdisk=0.0001, r_dust=0.3,\
+    star_temp=9000.0, kappa = "['carbon']", Kurucz= True, plot_ims=False, save_im_data=False, make_sed=False):
+    lp = lnprior(theta)
+    if not np.isinfinite(lp):
+        return -np.inf
+    return lp + lnprob_conv_disk_radmc3d()
+'''    
 #Here is some code that will run with %run but not import.
 if __name__ == "__main__":
     #nwalkers is set to be twice the number of parameters - should make this automatic
