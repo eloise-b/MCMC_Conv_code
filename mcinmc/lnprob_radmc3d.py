@@ -156,7 +156,7 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     
     #Convert parameters to RadMC3D strings
     r_in = '{0:7.3f}*au'.format(r_dust)
-    gapin  = '[0.0*au {0:7.3f}*au, {1:7.3f}*au]'.format(params['r_in'],params['r_wall'])
+    gapin  = '[0.0*au, {0:7.3f}*au, {1:7.3f}*au]'.format(params['r_in'],params['r_wall'])
     gapout = '[{0:7.3f}*au, {1:7.3f}*au, 60*au]'.format(params['r_in'],params['r_wall'])
     gap_depletion = '[{0:10.3e}, {1:10.3e}, 1e-1]'.format(params['gap_depletion1'],params['gap_depletion2'])
     dusttogas_str = "{0:8.6f}".format(params['dtog'])
