@@ -149,11 +149,11 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     
     #dodgy fix - need priors instead
     #Make corrections if the r_in and r_wall are around the wrong way
-    if params['r_in'] > params['r_wall']:
-        r_in = params['r_in']
-        r_wall = params['r_wall']
-        params['r_wall'] = r_in
-        params['r_in'] = r_wall
+    #if params['r_in'] > params['r_wall']:
+    #    r_in = params['r_in']
+    #    r_wall = params['r_wall']
+    #    params['r_wall'] = r_in
+    #    params['r_in'] = r_wall
     
     #Convert parameters to RadMC3D strings
     r_in = '{0:7.3f}*au'.format(r_dust)
@@ -164,8 +164,8 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     mdisk_str = '[{0:9.7f}*ms]'.format(mdisk)
     #dodgy fix - need priors instead
     #testing to see if this is where the bug is
-    if params['r_wall'] > 60.:
-        params['r_wall']=60.
+    #if params['r_wall'] > 60.:
+    #    params['r_wall']=60.
     x_bound = '[{0:7.3f}*au, ({0:7.3f}+0.1)*au, {1:7.3f}*au, {1:7.3f}*1.1*au, 100*au]'.format(params['r_in'],params['r_wall'])
     n_x = [20., 30., 20., 40.]
     n_z = 60
@@ -271,27 +271,31 @@ def lnprob(args):
     return lnprob_conv_disk_radmc3d(args)
     
 '''
-''' 
+
 def lnprior(x):
     params = {'dtog':np.exp(x[0]),'gap_depletion1':np.exp(x[1]),'gap_depletion2':np.exp(x[2]),\
             'r_in':np.exp(x[3]),'r_wall':np.exp(x[4]),'inc':x[5],'pa_sky':x[6],'star_x':x[7],\
             'star_y':x[8],'planet_x':x[9], 'planet_y':x[10], 'planet_r':x[11]}
-    if params['r_in'] < params['r_wall']:
+    if params['r_in'] < params['r_wall'] and params['r_wall'] < 60.:
         return 0.0
     return -np.inf
    
-def lnprob(x, temperature=10000.0, filename='good_ims.fits',nphot="long(4e4)",\
+def lnprob(x, temperature=10000.0, filename='IRS48_ims.fits',nphot="long(4e4)",\
     nphot_scat="long(2e4)", remove_directory=True, star_r=2.0, star_m=2.0, planet_mass=0.001,\
     planet_temp=1500.0, dist=120.0, pxsize=0.01, wav_in_um=3.776, mdisk=0.0001, r_dust=0.3,\
     star_temp=9000.0, kappa = "['carbon']", Kurucz= True, plot_ims=False, save_im_data=False, make_sed=False):
     lp = lnprior(x)
-    if not np.isinfinite(lp):
+    if not np.isfinite(lp):
         return -np.inf
-    return lp + lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',nphot="long(4e4)",\
-    nphot_scat="long(2e4)", remove_directory=True, star_r=2.0, star_m=2.0, planet_mass=0.001,\
-    planet_temp=1500.0, dist=120.0, pxsize=0.01, wav_in_um=3.776, mdisk=0.0001, r_dust=0.3,\
-    star_temp=9000.0, kappa = "['carbon']", Kurucz= True, plot_ims=False, save_im_data=False, make_sed=False)
-'''
+    return lp + lnprob_conv_disk_radmc3d(x, temperature=temperature, filename=filename,\
+    nphot=nphot, nphot_scat=nphot_scat, remove_directory=remove_directory, star_r=star_r,\
+    star_m=star_m, planet_mass=planet_mass, planet_temp=planet_temp, dist=dist, \
+    pxsize=pxsize, wav_in_um=wav_in_um, mdisk=mdisk, r_dust=r_dust, star_temp=star_temp, \
+    kappa = kappa, Kurucz= Kurucz, plot_ims=plot_ims, save_im_data=save_im_data, make_sed=make_sed)
+    #return lp + lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='IRS48_ims.fits',nphot="long(4e4)",\
+    #nphot_scat="long(2e4)", remove_directory=True, star_r=2.0, star_m=2.0, planet_mass=0.001,\
+    #planet_temp=1500.0, dist=120.0, pxsize=0.01, wav_in_um=3.776, mdisk=0.0001, r_dust=0.3,\
+    #star_temp=9000.0, kappa = "['carbon']", Kurucz= True, plot_ims=False, save_im_data=False, make_sed=False)
 
 #Here is some code that will run with %run but not import.
 if __name__ == "__main__":
