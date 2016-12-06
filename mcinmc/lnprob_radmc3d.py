@@ -276,7 +276,7 @@ def lnprior(x):
     params = {'dtog':np.exp(x[0]),'gap_depletion1':np.exp(x[1]),'gap_depletion2':np.exp(x[2]),\
             'r_in':np.exp(x[3]),'r_wall':np.exp(x[4]),'inc':x[5],'pa_sky':x[6],'star_x':x[7],\
             'star_y':x[8],'planet_x':x[9], 'planet_y':x[10], 'planet_r':x[11]}
-    if params['r_in'] < params['r_wall'] and params['r_wall'] < 60.:
+    if params['r_in'] < params['r_wall'] and params['r_wall'] < 60. and params['r_wall'] > params['r_in']+0.1:
         return 0.0
     return -np.inf
    
