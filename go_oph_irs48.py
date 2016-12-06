@@ -3,7 +3,8 @@ import multiprocessing
 import numpy as np
 import emcee
 import pickle
-from lnprob_radmc3d import lnprob_conv_disk_radmc3d
+from lnprob_radmc3d import *
+#from lnprob_radmc3d import lnprob_conv_disk_radmc3d
 
 multiprocess=False
 
@@ -62,16 +63,19 @@ elif mode=='mcmc':
 
     if (multiprocess):
         threads = multiprocessing.cpu_count()
-        sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_conv_disk_radmc3d, threads=threads, kwargs=kwargs)
+        #sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_conv_disk_radmc3d, threads=threads, kwargs=kwargs)
+        sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, threads=threads, kwargs=kwargs)
         sampler.run_mcmc(p0,500)
     else:
-        sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_conv_disk_radmc3d, kwargs=kwargs)
+        #sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_conv_disk_radmc3d, threads=4, kwargs=kwargs)
+        sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, kwargs=kwargs)
         sampler.run_mcmc(p0,5)
 
     chainfile = open('chainfile.pkl','w')
     pickle.dump((sampler.lnprobability,sampler.chain),chainfile)
     chainfile.close()
 
+    '''
     #Print the key outputs.
     np.set_printoptions(suppress=True)
     np.set_printoptions(precision=3)
@@ -79,7 +83,7 @@ elif mode=='mcmc':
     ch = sampler.chain[:,nsamp//2:,:].reshape( (nsamp//2*nwalkers, len(ipar)) )
     print(np.mean(ch,axis=0))
     print(np.std(ch,axis=0))
-
+    '''
     #Useful things
     #np.max(sampler.flatlnprobability)
     #np.argmax(sampler.flatlnprobability)
