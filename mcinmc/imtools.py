@@ -246,6 +246,9 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         arcsinh_plot(tgt_sum, stretch, asinh_vmin=-2, im_name='target_sum.png', extent=extent)
         arcsinh_plot(model_sum, stretch, asinh_vmin=-2, im_name='model_sum.png', extent=extent)
         arcsinh_plot(tgt_sum-model_sum, stretch, im_name = 'resid_sum.png', extent=extent, scale_val=np.max(tgt_sum))
+        plt.imshow(tgt_sum-model_sum, interpolation 'nearest', extent=extent)
+        plt.savefig('residual.png')
+        plt.clf()
     
     #Save the final image data as a pickle, so that it can be read by another code to make
     #images for a paper later
