@@ -94,6 +94,7 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
     
     cbar.ax.set_yticklabels([fmt_string.format(y) for y in stretch*np.sinh(ticks)])
     plt.savefig(im_name, bbox_inches='tight')
+    plt.clf()
 
 
 #-------------------------------------------------------------------------------------
@@ -163,6 +164,8 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         rotated_ims_ft.append(rotated_image_ft)
     rotated_image = np.array(rotated_ims)
     rotated_image_ft = np.array(rotated_ims_ft)
+    if plot_ims:
+        arcsinh_plot(np.average(rotated_image), mcmc_stretch, im_name='rot_im.png', extent=extent)
     
     #Output the model rotated image if needed.
     #if plot_ims:
