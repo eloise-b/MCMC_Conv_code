@@ -165,7 +165,7 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
     rotated_image = np.array(rotated_ims)
     rotated_image_ft = np.array(rotated_ims_ft)
     if plot_ims:
-        arcsinh_plot(np.average(rotated_image), mcmc_stretch, im_name='rot_im.png', extent=extent)
+        arcsinh_plot(np.average(rotated_image, axis=0), mcmc_stretch, im_name='rot_im.png', extent=extent)
     
     #Output the model rotated image if needed.
     #if plot_ims:
