@@ -38,7 +38,8 @@ import multiprocessing
 def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',nphot="long(4e4)",\
     nphot_scat="long(2e4)", remove_directory=True, star_r=2.0, star_m=2.0, planet_mass=0.001,\
     planet_temp=1500.0, dist=120.0, pxsize=0.01, wav_in_um=3.776, mdisk=0.0001, r_dust=0.3,\
-    star_temp=9000.0, kappa = "['carbon']", Kurucz= True, plot_ims=False, save_im_data=False, make_sed=False):
+    star_temp=9000.0, kappa = "['carbon']", Kurucz= True, plot_ims=False, save_im_data=False, \
+    make_sed=False, rel_flux = 8.672500426996962):
     """
     Return the logarithm of the probability that a disk model fits the data, given model
     parameters x.
@@ -81,6 +82,9 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     Kurucz: Boolean
         this is the type of emission you want the star to have, blackbody or interpolated 
         from a Kurucz model - Kurucz will happen if true
+    rel_flux: float
+        the value of the relative flux of the star compared to the disc, (disc/star), that 
+        you are aiming for with the SED parameter
     """
    
     print("Debugging... planet_temp is: {0:5.1f}".format(planet_temp)) 
@@ -103,6 +107,13 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     
     #Get the pa information for the object from the fits file
     pa_vert = pyfits.getdata(filename,2)['pa'] 
+    
+    #read in the star_only image for comparison
+    imag_obj_star=r3.image.readImage('image_star.out') 
+    im_star=imag_obj_star.image[:,:,0]
+    
+    #Calculate the sum of the star only image for comparison later
+    star_sum = np.sum(im_star)
     
     #----------------------------------------------------------------------------------------
 
@@ -206,8 +217,15 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     imag_obj=r3.image.readImage('image.out') 
     im=imag_obj.image[:,:,0]
     
+    #calculate the sum of the model image to use as comparison for SED
+    intensity = np.sum(im)
+    
+    #compare the star and the star+disc -> This is the SED Parameter
+    rel_intens = intensity/star_sum
+    
     #Inclination angle, detailed disk properties can only come from RADMC-3D
     #Pa to add to the model image PA. Note that this is instrument (not sky) PA.
+    #this PA stuff has been fixed now
     
     # Define model type for if making model chi txt
     model_type = str(params['dtog']) + ',' + str(params['gap_depletion1']) + ','  + \
@@ -234,7 +252,7 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
         print("*** Figures saved in " + pid_str + " ***")
     
     #Return log likelihood
-    lnlike = -0.5*chi_tot/temperature
+    lnlike = -1*(0.5*chi_tot/temperature +((np.log10(rel_flux)-np.log10(rel_intens))**2/(2*0.01)))
     print("*** Computed likelihood {0:7.1f} for thread {1:s} ***".format(lnlike,pid_str))
 
     c = open('chain'+pid_str+'.txt','a')
