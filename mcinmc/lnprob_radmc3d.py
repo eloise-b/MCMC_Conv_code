@@ -309,7 +309,8 @@ def lnprior(x):
 def lnprob(x, temperature=10000.0, filename='IRS48_ims.fits',nphot="long(4e4)",\
     nphot_scat="long(2e4)", remove_directory=True, star_r=2.0, star_m=2.0, planet_mass=0.001,\
     planet_temp=1500.0, dist=120.0, pxsize=0.01, wav_in_um=3.776, mdisk=0.0001,\
-    star_temp=9000.0, kappa = "['carbon']", Kurucz= True, plot_ims=False, save_im_data=False, make_sed=False):
+    star_temp=9000.0, kappa = "['carbon']", Kurucz= True, plot_ims=False, save_im_data=False, \
+    make_sed=False,rel_flux = 8.672500426996962):
     #planet_temp=1500.0, dist=120.0, pxsize=0.01, wav_in_um=3.776, mdisk=0.0001, r_dust=0.3,\
     lp = lnprior(x)
     if not np.isfinite(lp):
@@ -318,7 +319,8 @@ def lnprob(x, temperature=10000.0, filename='IRS48_ims.fits',nphot="long(4e4)",\
     nphot=nphot, nphot_scat=nphot_scat, remove_directory=remove_directory, star_r=star_r,\
     star_m=star_m, planet_mass=planet_mass, planet_temp=planet_temp, dist=dist, \
     pxsize=pxsize, wav_in_um=wav_in_um, mdisk=mdisk, star_temp=star_temp, \
-    kappa = kappa, Kurucz= Kurucz, plot_ims=plot_ims, save_im_data=save_im_data, make_sed=make_sed)
+    kappa = kappa, Kurucz= Kurucz, plot_ims=plot_ims, save_im_data=save_im_data, make_sed=make_sed,\
+    rel_flux=rel_flux)
     #pxsize=pxsize, wav_in_um=wav_in_um, mdisk=mdisk, r_dust=r_dust, star_temp=star_temp, \
     #return lp + lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='IRS48_ims.fits',nphot="long(4e4)",\
     #nphot_scat="long(2e4)", remove_directory=True, star_r=2.0, star_m=2.0, planet_mass=0.001,\
