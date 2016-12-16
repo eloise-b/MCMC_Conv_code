@@ -302,7 +302,7 @@ def lnprior(x):
             'pa_sky':x[7],'star_x':x[8],'star_y':x[9],'planet_x':x[10], 'planet_y':x[11],\
             'planet_r':x[12]}
     if params['r_in'] < params['r_wall'] and params['r_wall'] < 60. and \
-       params['r_wall'] > params['r_in']+0.1 and params['r_dust'] < params[r_in]:
+       params['r_wall'] > params['r_in']+0.1 and params['r_dust'] < params['r_in']:
         return 0.0
     return -np.inf
    
