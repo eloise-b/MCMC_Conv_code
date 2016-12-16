@@ -10,26 +10,39 @@ import radmc3dPy as r3
 multiprocess=True
 
 #nwalkers is set to be twice the number of parameters - should make this automatic
-nwalkers = 24
+nwalkers = 26
 print('nwalkers=',nwalkers)
 
 #set parameters to 0.0 if you don't want them investigated. Have to set ipar_sig to zero also!
-
+'''
 #Issues: stellar temperature and dust to gas compete with each other. They only 
 ipar = np.array([np.log(5.10e-4), #Dust to gas
+                 np.log(2.24e-3), #inner disc Gap Depletion
                  np.log(2.24e-3), #Gap Depletion
+                 np.log(0.2), # dust sublimation radius
                  np.log(12.44),     #Inner Radius (AU)
                  np.log(25.0),     #Wall Radius (AU)
                  28.7,               #Inclination
                  133.4,               #Position Angle
                  0.0,-0.6,          #Star position offset (AU)
                  np.log(7327.0),   #Stellar temperature (8250 from Yeon Seok 2015)
+                 0.0,0.0,0.0])     #Planet x, y, radius
+'''                 
+ipar = np.array([np.log(5.10e-4), #Dust to gas
+                 np.log(2.24e-3), #inner disc Gap Depletion
+                 np.log(2.24e-3), #Gap Depletion
+                 np.log(0.2), # dust sublimation radius
+                 np.log(12.44),     #Inner Radius (AU)
+                 np.log(25.0),     #Wall Radius (AU)
+                 28.7,               #Inclination
+                 133.4,               #Position Angle
+                 0.0,0.0,          #Star position offset (AU)
                  0.0,0.0,0.0])     #Planet x, y, radius.
 
-ipar = np.array([  -7.559 + np.log(50),   -6.106,    2.519,    3.219,   29.32 ,  -90 + 134.982,
-          0.037,   -0.542,    8.898,    0.   ,    0.   ,    0.   ])
-ipar = np.array([  -7.559 + np.log(50),   -6.106,    2.519,    3.219,   19.32 ,  -90 + 134.982,
-          0.037,   -0.542,    8.898,    0.   ,    0.   ,    0.   ])
+#ipar = np.array([  -7.559 + np.log(50),   -6.106,    2.519,    3.219,   29.32 ,  -90 + 134.982,
+#          0.037,   -0.542,    8.898,    0.   ,    0.   ,    0.   ])
+#ipar = np.array([  -7.559 + np.log(50),   -6.106,    2.519,    3.219,   19.32 ,  -90 + 134.982,
+#          0.037,   -0.542,    8.898,    0.   ,    0.   ,    0.   ])
 
 #In [35]: sampler.flatchain[5996]
 #Out[35]: 
@@ -45,10 +58,12 @@ ipar = np.array([  -7.559 + np.log(50),   -6.106,    2.519,    3.219,   19.32 , 
 #         1.03350072e+00,   5.64420412e-01,   7.32700307e+03,
 #         1.00000000e+00,   1.00000000e+00,   1.00000000e+00])
 
-mode='test'
+#mode='test'
 mode='mcmc'
-mode='plot'
-kwargs = {"planet_temp":2000,"temperature":1000,"filename":"HD169142_2014_ims.fits","dist":145}
+#mode='plot'
+kwargs = {"planet_temp":2000,"temperature":10000,"filename":"HD169142_2014_ims.fits","dist":145,\
+          "rel_flux":6.973494765305826, "star_r":1.6, "star_m":1.65, "mdisk":1.e-3, "star_temp":8250,\
+          "kappa":"['56e-3_pah']","Kurucz":True}
 
 #A test code block to see the effect of changing one parameter at a time.
 if mode=='test':
@@ -68,7 +83,7 @@ if mode=='test':
 elif mode=='plot':
     lnprob = lnprob_conv_disk_radmc3d(ipar, remove_directory=False, plot_ims=True, **kwargs)
 elif mode=='mcmc':
-    ipar_sig = np.array([.01,.01,.01,.0,1,5,0.05,0.05,0.05,0.,0.,0.0])
+    ipar_sig = np.array([.1,.1,.1,.1,.1,.1,1,5,0.0,0.0,0.,0.,0.0])
     ndim = len(ipar)
     #Could use parameters of random.normal instead of below, if you prefer that.
     p0 = [ipar + np.random.normal(size=ndim)*ipar_sig for i in range(nwalkers)]
@@ -76,7 +91,7 @@ elif mode=='mcmc':
     if (multiprocess):
         threads = multiprocessing.cpu_count()
         sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_conv_disk_radmc3d, threads=threads, kwargs=kwargs)
-        sampler.run_mcmc(p0,500)
+        sampler.run_mcmc(p0,1000)
     else:
         sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_conv_disk_radmc3d, kwargs=kwargs)
         sampler.run_mcmc(p0,50)
