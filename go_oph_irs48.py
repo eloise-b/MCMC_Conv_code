@@ -9,7 +9,7 @@ from lnprob_radmc3d import *
 multiprocess=False
 
 #nwalkers is set to be twice the number of parameters - should make this automatic
-nwalkers = 24
+nwalkers = 26
 print('nwalkers=',nwalkers)
 
 #set parameters to 0.0 if you don't want them investigated. Have to set ipar_sig to zero also!
@@ -34,8 +34,8 @@ print('nwalkers=',nwalkers)
 
 #Parameters to be used when there is an inner disc
 #Symmetric disc
-ipar = np.array([np.log(6.894e-3),np.log(2.894e-8),np.log(3.012e-3),np.log(11.22),np.log(22.13),48.85,165.,0.0,0.0,0.0,0.0,0.0])
-ipar_sig = np.array([.1,.1,.1,.1,.1,1.,5.,0.0,0.0,0.,0.,0.0])
+ipar = np.array([np.log(6.894e-3),np.log(2.894e-8),np.log(3.012e-3),np.log(0.3),np.log(11.22),np.log(22.),48.85,165.,0.0,0.0,0.0,0.0,0.0])
+ipar_sig = np.array([.1,.1,.1,.1,.1,0.,1.,5.,0.0,0.0,0.,0.,0.0])
 
 #mode='test'
 mode='mcmc'
@@ -65,7 +65,7 @@ elif mode=='mcmc':
         threads = multiprocessing.cpu_count()
         #sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_conv_disk_radmc3d, threads=threads, kwargs=kwargs)
         sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, threads=threads, kwargs=kwargs)
-        sampler.run_mcmc(p0,500)
+        sampler.run_mcmc(p0,1000)
     else:
         #sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_conv_disk_radmc3d, threads=4, kwargs=kwargs)
         sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, kwargs=kwargs)
