@@ -37,9 +37,14 @@ import multiprocessing
 
 def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',nphot="long(4e4)",\
     nphot_scat="long(2e4)", remove_directory=True, star_r=2.0, star_m=2.0, planet_mass=0.001,\
-    planet_temp=1500.0, dist=120.0, pxsize=0.01, wav_in_um=3.776, mdisk=0.0001, r_dust=0.3,\
+    planet_temp=1500.0, dist=120.0, pxsize=0.01, wav_in_um=3.776, mdisk=0.0001,\
     star_temp=9000.0, kappa = "['carbon']", Kurucz= True, plot_ims=False, save_im_data=False, \
     make_sed=False, rel_flux = 8.672500426996962):
+#def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',nphot="long(4e4)",\
+#    nphot_scat="long(2e4)", remove_directory=True, star_r=2.0, star_m=2.0, planet_mass=0.001,\
+#    planet_temp=1500.0, dist=120.0, pxsize=0.01, wav_in_um=3.776, mdisk=0.0001, r_dust=0.3,\
+#    star_temp=9000.0, kappa = "['carbon']", Kurucz= True, plot_ims=False, save_im_data=False, \
+#    make_sed=False, rel_flux = 8.672500426996962):
     """
     Return the logarithm of the probability that a disk model fits the data, given model
     parameters x.
@@ -93,8 +98,9 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     #        'r_wall':np.exp(x[3]),'inc':x[4],'pa':x[5],'star_x':x[6],'star_y':x[7],\
     #        'star_temp':np.exp(x[8]),'planet_x':x[9], 'planet_y':x[10], 'planet_r':x[11]}
     params = {'dtog':np.exp(x[0]),'gap_depletion1':np.exp(x[1]),'gap_depletion2':np.exp(x[2]),\
-            'r_in':np.exp(x[3]),'r_wall':np.exp(x[4]),'inc':x[5],'pa_sky':x[6],'star_x':x[7],\
-            'star_y':x[8],'planet_x':x[9], 'planet_y':x[10], 'planet_r':x[11]}
+            'r_dust':np.exp(x[3]),'r_in':np.exp(x[4]),'r_wall':np.exp(x[5]),'inc':x[6],\
+            'pa_sky':x[7],'star_x':x[8],'star_y':x[9],'planet_x':x[10], 'planet_y':x[11], \
+            'planet_r':x[12]}
                 
     #Target images.
     tgt_ims = pyfits.getdata(filename,0)
@@ -229,7 +235,7 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     
     # Define model type for if making model chi txt
     model_type = str(params['dtog']) + ',' + str(params['gap_depletion1']) + ','  + \
-                 str(params['gap_depletion2']) + ',' + str(params['r_in']) + ',' \
+                 str(params['gap_depletion2']) + ',' + str(params['r_dust']) + ','+ str(params['r_in']) + ',' \
                  + str(params['r_wall']) + ',' + str(params['inc']) + ',' + str(params['pa_sky'])\
                  + ',' + str(params['star_x']) + ',' + str(params['star_y']) + ',' + \
                  str(params['planet_x']) + ',' + str(params['planet_y']) + ',' + str(params['planet_r'])
@@ -300,16 +306,18 @@ def lnprior(x):
    
 def lnprob(x, temperature=10000.0, filename='IRS48_ims.fits',nphot="long(4e4)",\
     nphot_scat="long(2e4)", remove_directory=True, star_r=2.0, star_m=2.0, planet_mass=0.001,\
-    planet_temp=1500.0, dist=120.0, pxsize=0.01, wav_in_um=3.776, mdisk=0.0001, r_dust=0.3,\
+    planet_temp=1500.0, dist=120.0, pxsize=0.01, wav_in_um=3.776, mdisk=0.0001,\
     star_temp=9000.0, kappa = "['carbon']", Kurucz= True, plot_ims=False, save_im_data=False, make_sed=False):
+    #planet_temp=1500.0, dist=120.0, pxsize=0.01, wav_in_um=3.776, mdisk=0.0001, r_dust=0.3,\
     lp = lnprior(x)
     if not np.isfinite(lp):
         return -np.inf
     return lp + lnprob_conv_disk_radmc3d(x, temperature=temperature, filename=filename,\
     nphot=nphot, nphot_scat=nphot_scat, remove_directory=remove_directory, star_r=star_r,\
     star_m=star_m, planet_mass=planet_mass, planet_temp=planet_temp, dist=dist, \
-    pxsize=pxsize, wav_in_um=wav_in_um, mdisk=mdisk, r_dust=r_dust, star_temp=star_temp, \
+    pxsize=pxsize, wav_in_um=wav_in_um, mdisk=mdisk, star_temp=star_temp, \
     kappa = kappa, Kurucz= Kurucz, plot_ims=plot_ims, save_im_data=save_im_data, make_sed=make_sed)
+    #pxsize=pxsize, wav_in_um=wav_in_um, mdisk=mdisk, r_dust=r_dust, star_temp=star_temp, \
     #return lp + lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='IRS48_ims.fits',nphot="long(4e4)",\
     #nphot_scat="long(2e4)", remove_directory=True, star_r=2.0, star_m=2.0, planet_mass=0.001,\
     #planet_temp=1500.0, dist=120.0, pxsize=0.01, wav_in_um=3.776, mdisk=0.0001, r_dust=0.3,\
