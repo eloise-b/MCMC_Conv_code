@@ -3,7 +3,7 @@ import multiprocessing
 import numpy as np
 import emcee
 import pickle
-from mcinmc import lnprob_conv_disk_radmc3d
+from lnprob_radmc3d import *
 import pdb
 import radmc3dPy as r3
 
