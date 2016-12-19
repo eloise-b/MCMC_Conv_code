@@ -183,8 +183,8 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     #testing to see if this is where the bug is
     #if params['r_wall'] > 60.:
     #    params['r_wall']=60.
-    x_bound = '[{0:7.3f}*au, ({0:7.3f}+0.1)*au, {1:7.3f}*au, {1:7.3f}*1.1*au, 100*au]'.format(params['r_in'],params['r_wall'])
-    n_x = [20., 30., 20., 40.]
+    x_bound = '[{0:7.3f}*au,{1:7.3f}*au, ({1:7.3f}+0.1)*au, {2:7.3f}*au, {2:7.3f}*1.1*au, 100*au]'.format(params['r_dust'],params['r_in'],params['r_wall'])
+    n_x = [5., 20., 30., 20., 40.]
     n_z = 60
     if params['planet_r'] != 0.0:
         star_pos = '[[{0:7.3f}*au,{1:7.3f}*au,0.0],[{2:7.3f}*au,{3:7.3f}*au,0.0]]'.format(params['star_x'],params['star_y'],params['planet_x'],params['planet_y'])
@@ -302,7 +302,8 @@ def lnprior(x):
             'pa_sky':x[7],'star_x':x[8],'star_y':x[9],'planet_x':x[10], 'planet_y':x[11],\
             'planet_r':x[12]}
     if params['r_in'] < params['r_wall'] and params['r_wall'] < 60. and \
-       params['r_wall'] > params['r_in']+0.1 and params['r_dust'] < params['r_in']:
+       params['r_wall'] > params['r_in']+0.1 and params['r_dust'] < params['r_in'] and \
+       params['r_dust']>0.1:
         return 0.0
     return -np.inf
    
