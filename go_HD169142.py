@@ -63,7 +63,7 @@ mode='mcmc'
 #mode='plot'
 kwargs = {"planet_temp":2000,"temperature":10000,"filename":"HD169142_2014_ims.fits","dist":145,\
           "rel_flux":6.973494765305826, "star_r":1.6, "star_m":1.65, "mdisk":1.e-3, "star_temp":8250,\
-          "kappa":"['56e-3_pah']","Kurucz":True}
+          "kappa":"['56e-3_pah']","Kurucz":True,"out_wall":70., "out_dep":1e-1}
 
 #A test code block to see the effect of changing one parameter at a time.
 if mode=='test':
@@ -90,16 +90,16 @@ elif mode=='mcmc':
 
     if (multiprocess):
         threads = multiprocessing.cpu_count()
-        sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_conv_disk_radmc3d, threads=threads, kwargs=kwargs)
+        sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, threads=threads, kwargs=kwargs)
         sampler.run_mcmc(p0,1000)
     else:
-        sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_conv_disk_radmc3d, kwargs=kwargs)
+        sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, kwargs=kwargs)
         sampler.run_mcmc(p0,50)
 
     chainfile = open('chainfile.pkl','w')
     pickle.dump((sampler.lnprobability,sampler.chain),chainfile)
     chainfile.close()
-
+    '''
     #Print the key outputs.
     np.set_printoptions(suppress=True)
     np.set_printoptions(precision=3)
@@ -107,4 +107,4 @@ elif mode=='mcmc':
     ch = sampler.chain[:,nsamp//2:,:].reshape( (nsamp//2*nwalkers, len(ipar)) )
     print(np.mean(ch,axis=0))
     print(np.std(ch,axis=0))
-
+    '''
