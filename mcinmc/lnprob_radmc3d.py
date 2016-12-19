@@ -39,7 +39,7 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     nphot_scat="long(2e4)", remove_directory=True, star_r=2.0, star_m=2.0, planet_mass=0.001,\
     planet_temp=1500.0, dist=120.0, pxsize=0.01, wav_in_um=3.776, mdisk=0.0001,\
     star_temp=9000.0, kappa = "['carbon']", Kurucz= True, plot_ims=False, save_im_data=False, \
-    make_sed=False, rel_flux = 8.672500426996962):
+    make_sed=False, rel_flux = 8.672500426996962, out_wall = 60., out_dep = 1e-1):
 #def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',nphot="long(4e4)",\
 #    nphot_scat="long(2e4)", remove_directory=True, star_r=2.0, star_m=2.0, planet_mass=0.001,\
 #    planet_temp=1500.0, dist=120.0, pxsize=0.01, wav_in_um=3.776, mdisk=0.0001, r_dust=0.3,\
@@ -90,6 +90,10 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     rel_flux: float
         the value of the relative flux of the star compared to the disc, (disc/star), that 
         you are aiming for with the SED parameter
+    out_wall: float
+        outer wall radius in au
+    out_dep : float
+        depletion of the outer region
     """
    
     print("Debugging... planet_temp is: {0:5.1f}".format(planet_temp)) 
@@ -175,8 +179,8 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     #Convert parameters to RadMC3D strings
     r_in = '{0:7.3f}*au'.format(params['r_dust'])
     gapin  = '[0.0*au, {0:7.3f}*au, {1:7.3f}*au]'.format(params['r_in'],params['r_wall'])
-    gapout = '[{0:7.3f}*au, {1:7.3f}*au, 60*au]'.format(params['r_in'],params['r_wall'])
-    gap_depletion = '[{0:10.3e}, {1:10.3e}, 1e-1]'.format(params['gap_depletion1'],params['gap_depletion2'])
+    gapout = '[{0:7.3f}*au, {1:7.3f}*au, {2:7.3f}*au]'.format(params['r_in'],params['r_wall'],out_wall)
+    gap_depletion = '[{0:10.3e}, {1:10.3e}, {2:10.3e}]'.format(params['gap_depletion1'],params['gap_depletion2'],out_dep)
     dusttogas_str = "{0:8.6f}".format(params['dtog'])
     mdisk_str = '[{0:9.7f}*ms]'.format(mdisk)
     #dodgy fix - need priors instead
@@ -311,7 +315,7 @@ def lnprob(x, temperature=10000.0, filename='IRS48_ims.fits',nphot="long(4e4)",\
     nphot_scat="long(2e4)", remove_directory=True, star_r=2.0, star_m=2.0, planet_mass=0.001,\
     planet_temp=1500.0, dist=120.0, pxsize=0.01, wav_in_um=3.776, mdisk=0.0001,\
     star_temp=9000.0, kappa = "['carbon']", Kurucz= True, plot_ims=False, save_im_data=False, \
-    make_sed=False,rel_flux = 8.672500426996962):
+    make_sed=False,rel_flux = 8.672500426996962, out_wall = 60., out_dep = 1e-1):
     #planet_temp=1500.0, dist=120.0, pxsize=0.01, wav_in_um=3.776, mdisk=0.0001, r_dust=0.3,\
     lp = lnprior(x)
     if not np.isfinite(lp):
@@ -321,7 +325,7 @@ def lnprob(x, temperature=10000.0, filename='IRS48_ims.fits',nphot="long(4e4)",\
     star_m=star_m, planet_mass=planet_mass, planet_temp=planet_temp, dist=dist, \
     pxsize=pxsize, wav_in_um=wav_in_um, mdisk=mdisk, star_temp=star_temp, \
     kappa = kappa, Kurucz= Kurucz, plot_ims=plot_ims, save_im_data=save_im_data, make_sed=make_sed,\
-    rel_flux=rel_flux)
+    rel_flux=rel_flux, out_wall=out_wall, out_dep=out_dep)
     #pxsize=pxsize, wav_in_um=wav_in_um, mdisk=mdisk, r_dust=r_dust, star_temp=star_temp, \
     #return lp + lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='IRS48_ims.fits',nphot="long(4e4)",\
     #nphot_scat="long(2e4)", remove_directory=True, star_r=2.0, star_m=2.0, planet_mass=0.001,\
