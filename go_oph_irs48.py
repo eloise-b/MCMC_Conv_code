@@ -33,9 +33,26 @@ print('nwalkers=',nwalkers)
 #        0.007,  0.   ,  0.   ,  0.   ])
 
 #Parameters to be used when there is an inner disc
-#Symmetric disc
-ipar = np.array([np.log(6.894e-3),np.log(2.894e-8),np.log(3.012e-3),np.log(0.3),np.log(11.22),np.log(22.),48.85,165.,0.0,0.0,0.0,0.0,0.0])
-ipar_sig = np.array([.1,.1,.1,.1,.1,0.,1.,5.,0.0,0.0,0.,0.,0.0])
+#Symmetric disc, outer wall fixed
+ipar = np.array([np.log(9.50904245e-05),np.log(1.63747045e-03),np.log(4.29307631e-02),\
+                 np.log(3.98619281e+00),np.log(1.12584392e+01),np.log(22.),56.44151362,\
+                 173.65936535,0.0,0.0,0.0,0.0,0.0])
+ipar_sig = np.array([.01,.01,.01,.01,.01,0.0,0.5,1.,0.0,0.0,0.,0.,0.0])
+#Symmetric disc, inner disc fixed
+ipar = np.array([np.log(1.11252378e-04),np.log(3.85212859e-07),np.log(3.80633551e-02),\
+                 np.log(0.3),np.log(1.07813473e+01),np.log(2.60636960e+01),60.82504276,\
+                 170.95170624,0.0,0.0,0.0,0.0,0.0])
+ipar_sig = np.array([.1,.1,.1,.0,.1,0.1,1.,5.,0.0,0.0,0.,0.,0.0])
+#Asymmetric disc
+ipar = np.array([np.log(1.11252378e-04),np.log(3.85212859e-07),np.log(3.80633551e-02),\
+                 np.log(0.3),np.log(1.07813473e+01),np.log(2.60636960e+01),60.82504276,\
+                 170.95170624,-0.3,.1,0.0,0.0,0.0])
+ipar_sig = np.array([.1,.1,.1,.0,.1,0.,1.,5.,0.1,0.1,0.,0.,0.0])
+#Planet and asymmetry
+iipar = np.array([np.log(1.11252378e-04),np.log(3.85212859e-07),np.log(3.80633551e-02),\
+                 np.log(0.3),np.log(1.07813473e+01),np.log(2.60636960e+01),60.82504276,\
+                 170.95170624,0.3,.1,18.0,1.0,0.5])
+ipar_sig = np.array([.1,.1,.1,.0,.1,.1,.5,1.,0.1,0.1,0.1,0.1,0.1])
 
 #mode='test'
 mode='mcmc'
