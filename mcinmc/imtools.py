@@ -123,7 +123,7 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
 
 #-------------------------------------------------------------------------------------
 def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi_txt='',plot_ims=True,
-    preconvolve=True, pxscale=0.01, save_im_data=True, make_sed=True,
+    preconvolve=True, pxscale=0.01, save_im_data=True, make_sed=True, paper_ims=True,
     model_chi_dir = '/Users/eloisebirchall/Documents/Uni/Masters/radmc-3d/IRS_48_grid/MCMC_stuff/'):
     """Rotate a model image, and find the best fit. Output (for now!) 
     goes to file in the current directory.
@@ -190,6 +190,8 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
     rotated_image_ft = np.array(rotated_ims_ft)
     if plot_ims:
         arcsinh_plot(np.average(rotated_image, axis=0), mcmc_stretch, im_name='rot_im.png', extent=extent)
+    if paper_ims:
+        arcsinh_plot(np.average(rotated_image, axis=0), mcmc_stretch, im_title='Model', im_name='rot_im.eps', extent=extent)
     
     #Output the model rotated image if needed.
     #if plot_ims:
@@ -276,9 +278,9 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         plt.clf()
     
     if paper_ims:
-        arcsinh_plot(tgt_sum, stretch, asinh_vmin=0, im_name='target_sum.png', extent=extent)
-        arcsinh_plot(model_sum, stretch, asinh_vmin=0, im_name='model_sum.png', extent=extent)
-        arcsinh_plot(tgt_sum-model_sum, stretch, im_name = 'resid_sum.png', extent=extent, scale_val=np.max(tgt_sum))
+        arcsinh_plot(tgt_sum, stretch, asinh_vmin=0, im_title='Data', im_name='target_sum.eps', extent=extent)
+        arcsinh_plot(model_sum, stretch, asinh_vmin=0, im_title='Convolved Model', im_name='model_sum.eps', extent=extent)
+        arcsinh_plot(tgt_sum-model_sum, stretch, im_title='Residual, Target - Model', im_name = 'resid_sum.eps', extent=extent, scale_val=np.max(tgt_sum))
         plt.clf()
         
     #Save the final image data as a pickle, so that it can be read by another code to make
