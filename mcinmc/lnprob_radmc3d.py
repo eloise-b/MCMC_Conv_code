@@ -23,6 +23,8 @@ import numpy as np
 import emcee
 import matplotlib
 matplotlib.use('Agg')
+matplotlib.rcParams['pdf.fonttype'] = 42
+matplotlib.rcParams['ps.fonttype'] = 42
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import radmc3dPy as r3

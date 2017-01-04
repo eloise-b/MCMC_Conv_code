@@ -11,8 +11,11 @@ images of the models and the data and the residuals.
 from __future__ import print_function, division
 import scipy.ndimage as nd
 import numpy as np
+import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
+matplotlib.rcParams['pdf.fonttype'] = 42
+matplotlib.rcParams['ps.fonttype'] = 42
 import radmc3dPy as r3
 import astropy.io.fits as pyfits
 import opticstools as ot
@@ -85,7 +88,7 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
     plt.xlabel('Offset (")')
     plt.ylabel('Offset (")')
     ticks = np.linspace(vmin,vmax,6)
-    cbar = plt.colorbar(ticks=ticks, pad=0.0)
+    cbar = plt.colorbar(ticks=ticks, pad=0.0, label='I/I'+r'$_{max}$')
     #Note that the following line doesn't work in interactive mode.
     if stretch <= 0.001:
         fmt_string = "{0:5.3f}"
