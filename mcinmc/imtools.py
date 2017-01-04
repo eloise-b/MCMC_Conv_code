@@ -47,7 +47,7 @@ def ft_and_resample(cal_ims):
     return cal_ims_ft
 
 def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_name='arcsinh_im.png', \
-    scale_val=None):
+    scale_val=None, im_title=None):
     """A helper routine to make an arcsinh stretched image.
     
     Parameters
@@ -68,6 +68,8 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
         The name of the image file to be saved.
     scale_val: float
         The value to divide the data by. Defaults to max(im)
+    im_title: string
+        if you want to have the image have a title, but something in here
     """
     if not scale_val:
         scale_val = np.max(im)
@@ -82,22 +84,41 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
         vmin = asinh_vmin
     else:
         vmin = np.min(stretched_im)
-        
-    plt.clf()
-    plt.imshow(stretched_im, interpolation='nearest',cmap=cm.cubehelix, extent=extent, vmin=vmin, vmax=vmax)
-    plt.xlabel('Offset (")')
-    plt.ylabel('Offset (")')
-    ticks = np.linspace(vmin,vmax,6)
-    cbar = plt.colorbar(ticks=ticks, pad=0.0, label='I/I'+r'$_{max}$')
-    #Note that the following line doesn't work in interactive mode.
-    if stretch <= 0.001:
-        fmt_string = "{0:5.3f}"
-    else:
-        fmt_string = "{0:5.2f}"
     
-    cbar.ax.set_yticklabels([fmt_string.format(y) for y in stretch*np.sinh(ticks)])
-    plt.savefig(im_name, bbox_inches='tight')
-    plt.clf()
+    
+    if im_title:
+        plt.clf()
+        plt.imshow(stretched_im, interpolation='nearest',cmap=cm.cubehelix, extent=extent, vmin=vmin, vmax=vmax)
+        plt.xlabel('Offset (")')
+        plt.ylabel('Offset (")')
+        plt.title(im_title)
+        ticks = np.linspace(vmin,vmax,6)
+        cbar = plt.colorbar(ticks=ticks, pad=0.0, label='I/I'+r'$_{max}$')
+        #Note that the following line doesn't work in interactive mode.
+        if stretch <= 0.001:
+            fmt_string = "{0:5.3f}"
+        else:
+            fmt_string = "{0:5.2f}"
+        cbar.ax.set_yticklabels([fmt_string.format(y) for y in stretch*np.sinh(ticks)])
+        plt.savefig(im_name, bbox_inches='tight')
+        plt.clf()
+    
+    else:    
+        plt.clf()
+        plt.imshow(stretched_im, interpolation='nearest',cmap=cm.cubehelix, extent=extent, vmin=vmin, vmax=vmax)
+        plt.xlabel('Offset (")')
+        plt.ylabel('Offset (")')
+        ticks = np.linspace(vmin,vmax,6)
+        cbar = plt.colorbar(ticks=ticks, pad=0.0, label='I/I'+r'$_{max}$')
+        #Note that the following line doesn't work in interactive mode.
+        if stretch <= 0.001:
+            fmt_string = "{0:5.3f}"
+        else:
+            fmt_string = "{0:5.2f}"
+        
+        cbar.ax.set_yticklabels([fmt_string.format(y) for y in stretch*np.sinh(ticks)])
+        plt.savefig(im_name, bbox_inches='tight')
+        plt.clf()
 
 
 #-------------------------------------------------------------------------------------
@@ -254,6 +275,12 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         plt.savefig('residual.png',bbox_inches='tight')
         plt.clf()
     
+    if paper_ims:
+        arcsinh_plot(tgt_sum, stretch, asinh_vmin=0, im_name='target_sum.png', extent=extent)
+        arcsinh_plot(model_sum, stretch, asinh_vmin=0, im_name='model_sum.png', extent=extent)
+        arcsinh_plot(tgt_sum-model_sum, stretch, im_name = 'resid_sum.png', extent=extent, scale_val=np.max(tgt_sum))
+        plt.clf()
+        
     #Save the final image data as a pickle, so that it can be read by another code to make
     #images for a paper later
     if save_im_data:
