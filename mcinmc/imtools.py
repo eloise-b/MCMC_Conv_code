@@ -47,7 +47,7 @@ def ft_and_resample(cal_ims):
     return cal_ims_ft
 
 def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_name='arcsinh_im.png', \
-    scale_val=None, im_title=None):
+    scale_val=None, im_label=None):
     """A helper routine to make an arcsinh stretched image.
     
     Parameters
@@ -86,44 +86,52 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
         vmin = np.min(stretched_im)
     
     
-    if im_title:
+    if im_label:
         plt.clf()
         plt.imshow(stretched_im, interpolation='nearest',cmap=cm.cubehelix, extent=extent, vmin=vmin, vmax=vmax)
-        plt.xlabel('Offset (")')
-        plt.ylabel('Offset (")')
-        plt.title(im_title)
+        plt.xticks(fontsize=15)
+        plt.yticks(fontsize=15)        
+        plt.xlabel('Offset (")',fontsize=20)
+        plt.ylabel('Offset (")',fontsize=20)
+        #plt.title(im_title)
         ticks = np.linspace(vmin,vmax,6)
-        cbar = plt.colorbar(ticks=ticks, pad=0.0, label='I/I'+r'$_{max}$')
+        cbar = plt.colorbar(ticks=ticks, pad=0.0)
+        cbar.set_label('I/I'+r'$_{max}$',size=20)
         #Note that the following line doesn't work in interactive mode.
         if stretch <= 0.001:
             fmt_string = "{0:5.3f}"
         else:
             fmt_string = "{0:5.2f}"
         cbar.ax.set_yticklabels([fmt_string.format(y) for y in stretch*np.sinh(ticks)])
+        cbar.ax.tick_params(labelsize=15)
+        text(5,5,im_label,color='white',ha='left',va='center',fontsize=20
         plt.savefig(im_name, bbox_inches='tight')
         plt.clf()
     
     else:    
         plt.clf()
         plt.imshow(stretched_im, interpolation='nearest',cmap=cm.cubehelix, extent=extent, vmin=vmin, vmax=vmax)
-        plt.xlabel('Offset (")')
-        plt.ylabel('Offset (")')
+        plt.xticks(fontsize=15)
+        plt.yticks(fontsize=15)
+        plt.xlabel('Offset (")', fontsize=20)
+        plt.ylabel('Offset (")', fontsize=20)
         ticks = np.linspace(vmin,vmax,6)
-        cbar = plt.colorbar(ticks=ticks, pad=0.0, label='I/I'+r'$_{max}$')
+                cbar = plt.colorbar(ticks=ticks, pad=0.0)
+        cbar.set_label('I/I'+r'$_{max}$',size=20)
         #Note that the following line doesn't work in interactive mode.
         if stretch <= 0.001:
             fmt_string = "{0:5.3f}"
         else:
             fmt_string = "{0:5.2f}"
-        
         cbar.ax.set_yticklabels([fmt_string.format(y) for y in stretch*np.sinh(ticks)])
+        cbar.ax.tick_params(labelsize=15)
         plt.savefig(im_name, bbox_inches='tight')
         plt.clf()
 
 
 #-------------------------------------------------------------------------------------
 def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi_txt='',plot_ims=True,
-    preconvolve=True, pxscale=0.01, save_im_data=True, make_sed=True, paper_ims=True,
+    preconvolve=True, pxscale=0.01, save_im_data=True, make_sed=True, paper_ims=True, label=''
     model_chi_dir = '/Users/eloisebirchall/Documents/Uni/Masters/radmc-3d/IRS_48_grid/MCMC_stuff/'):
     """Rotate a model image, and find the best fit. Output (for now!) 
     goes to file in the current directory.
@@ -189,9 +197,9 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
     rotated_image = np.array(rotated_ims)
     rotated_image_ft = np.array(rotated_ims_ft)
     if plot_ims:
-        arcsinh_plot(np.average(rotated_image, axis=0), mcmc_stretch, im_name='rot_im.png', extent=extent)
+        arcsinh_plot(np.average(rotated_image, axis=0), mcmc_stretch, im_name='rot_im.eps', extent=extent)
     if paper_ims:
-        arcsinh_plot(np.average(rotated_image, axis=0), mcmc_stretch, im_title='Model', im_name='rot_im.eps', extent=extent)
+        arcsinh_plot(np.average(rotated_image, axis=0), mcmc_stretch, im_label=label+'Model', im_name='rot_im_paper.eps', extent=extent)
     
     #Output the model rotated image if needed.
     #if plot_ims:
@@ -269,18 +277,19 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
             #generate_images(best_model_ims,n)
 
     if plot_ims:
-        arcsinh_plot(tgt_sum, stretch, asinh_vmin=-2, im_name='target_sum.png', extent=extent)
-        arcsinh_plot(model_sum, stretch, asinh_vmin=-2, im_name='model_sum.png', extent=extent)
-        arcsinh_plot(tgt_sum-model_sum, stretch, im_name = 'resid_sum.png', extent=extent, scale_val=np.max(tgt_sum))
+        arcsinh_plot(tgt_sum, stretch, asinh_vmin=-2, im_name='target_sum.eps', extent=extent)
+        arcsinh_plot(model_sum, stretch, asinh_vmin=-2, im_name='model_sum.eps', extent=extent)
+        arcsinh_plot(tgt_sum-model_sum, stretch, im_name = 'resid_sum.eps', extent=extent, scale_val=np.max(tgt_sum))
         plt.imshow(tgt_sum-model_sum, interpolation='nearest', extent=extent, cmap=cm.cubehelix)
         plt.colorbar(pad=0.0)
-        plt.savefig('residual.png',bbox_inches='tight')
+        plt.savefig('residual.eps',bbox_inches='tight')
         plt.clf()
     
     if paper_ims:
-        arcsinh_plot(tgt_sum, stretch, asinh_vmin=0, im_title='Data', im_name='target_sum.eps', extent=extent)
-        arcsinh_plot(model_sum, stretch, asinh_vmin=0, im_title='Convolved Model', im_name='model_sum.eps', extent=extent)
-        arcsinh_plot(tgt_sum-model_sum, stretch, im_title='Residual, Target - Model', im_name = 'resid_sum.eps', extent=extent, scale_val=np.max(tgt_sum))
+        arcsinh_plot(tgt_sum, stretch, asinh_vmin=0, im_label='Data', im_name='target_sum_paper.eps', extent=extent)
+        arcsinh_plot(model_sum, stretch, asinh_vmin=0, im_label=label+'Convolved Model', im_name='model_sum_paper.eps', extent=extent)
+        arcsinh_plot(tgt_sum-model_sum, stretch, im_label=label+'Residual, Target - Model', im_name = 'resid_sum_paper.eps', extent=extent, scale_val=np.max(tgt_sum))
+        arcsinh_plot(tgt_sum/model_sum, stretch, im_label=label+'Ratio, Target/Model', im_name = 'ratio_paper.eps', extent=extent)#, scale_val=np.max(tgt_sum))        
         plt.clf()
         
     #Save the final image data as a pickle, so that it can be read by another code to make
