@@ -104,7 +104,7 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
             fmt_string = "{0:5.2f}"
         cbar.ax.set_yticklabels([fmt_string.format(y) for y in stretch*np.sinh(ticks)])
         cbar.ax.tick_params(labelsize=15)
-        text(5,5,im_label,color='white',ha='left',va='center',fontsize=20)
+        plt.text(5,5,im_label,color='white',ha='left',va='center',fontsize=20)
         plt.savefig(im_name, bbox_inches='tight')
         plt.clf()
     
