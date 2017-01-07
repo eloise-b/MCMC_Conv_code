@@ -104,7 +104,7 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
             fmt_string = "{0:5.2f}"
         cbar.ax.set_yticklabels([fmt_string.format(y) for y in stretch*np.sinh(ticks)])
         cbar.ax.tick_params(labelsize=15)
-        text(5,5,im_label,color='white',ha='left',va='center',fontsize=20
+        text(5,5,im_label,color='white',ha='left',va='center',fontsize=20)
         plt.savefig(im_name, bbox_inches='tight')
         plt.clf()
     
@@ -116,7 +116,7 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
         plt.xlabel('Offset (")', fontsize=20)
         plt.ylabel('Offset (")', fontsize=20)
         ticks = np.linspace(vmin,vmax,6)
-                cbar = plt.colorbar(ticks=ticks, pad=0.0)
+        cbar = plt.colorbar(ticks=ticks, pad=0.0)
         cbar.set_label('I/I'+r'$_{max}$',size=20)
         #Note that the following line doesn't work in interactive mode.
         if stretch <= 0.001:
@@ -131,7 +131,7 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
 
 #-------------------------------------------------------------------------------------
 def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi_txt='',plot_ims=True,
-    preconvolve=True, pxscale=0.01, save_im_data=True, make_sed=True, paper_ims=True, label=''
+    preconvolve=True, pxscale=0.01, save_im_data=True, make_sed=True, paper_ims=True, label='',
     model_chi_dir = '/Users/eloisebirchall/Documents/Uni/Masters/radmc-3d/IRS_48_grid/MCMC_stuff/'):
     """Rotate a model image, and find the best fit. Output (for now!) 
     goes to file in the current directory.
