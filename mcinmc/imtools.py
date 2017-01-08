@@ -104,7 +104,7 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
             fmt_string = "{0:5.2f}"
         cbar.ax.set_yticklabels([fmt_string.format(y) for y in stretch*np.sinh(ticks)])
         cbar.ax.tick_params(labelsize=15)
-        plt.text(5,5,im_label,color='white',ha='left',va='center',fontsize=20)
+        plt.text(-0.55,0.55,im_label,color='white',ha='left',va='center',fontsize=20)
         plt.savefig(im_name, bbox_inches='tight')
         plt.clf()
     
@@ -289,7 +289,17 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         arcsinh_plot(tgt_sum, stretch, asinh_vmin=0, im_label='Data', im_name='target_sum_paper.eps', extent=extent)
         arcsinh_plot(model_sum, stretch, asinh_vmin=0, im_label=label+'Convolved Model', im_name='model_sum_paper.eps', extent=extent)
         arcsinh_plot(tgt_sum-model_sum, stretch, im_label=label+'Residual, Target - Model', im_name = 'resid_sum_paper.eps', extent=extent, scale_val=np.max(tgt_sum))
-        arcsinh_plot(tgt_sum/model_sum, stretch, im_label=label+'Ratio, Target/Model', im_name = 'ratio_paper.eps', extent=extent)#, scale_val=np.max(tgt_sum))        
+        #arcsinh_plot(tgt_sum/model_sum, stretch, im_label=label+'Ratio, Target/Model', im_name = 'ratio_paper.eps', extent=extent)#, scale_val=np.max(tgt_sum))        
+        plt.imshow(tgt_sum/model_sum, interpolation='nearest' extent=extent, cmap=cm.cubehelix)
+        plt.xticks(fontsize=15)
+        plt.yticks(fontsize=15)        
+        plt.xlabel('Offset (")',fontsize=20)
+        plt.ylabel('Offset (")',fontsize=20)
+        cbar = plt.colorbar(pad=0.0)
+        cbar.ax.tick_params('Data/Model',labelsize=15)
+        plt.text(-0.55,0.55,im_label,color='orange',ha='left',va='center',fontsize=20)
+        plt.savefig(ratio_paper.eps, bbox_inches='tight')
+        plt.clf()
         plt.clf()
         
     #Save the final image data as a pickle, so that it can be read by another code to make
