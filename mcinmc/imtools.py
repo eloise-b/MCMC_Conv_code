@@ -104,7 +104,7 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
             fmt_string = "{0:5.2f}"
         cbar.ax.set_yticklabels([fmt_string.format(y) for y in stretch*np.sinh(ticks)])
         cbar.ax.tick_params(labelsize=15)
-        plt.text(-0.55,0.55,im_label,color='white',ha='left',va='center',fontsize=20)
+        plt.text(-0.6,0.6,im_label,color='white',ha='left',va='center',fontsize=20)
         plt.savefig(im_name, bbox_inches='tight')
         plt.clf()
     
@@ -297,7 +297,7 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         plt.ylabel('Offset (")',fontsize=20)
         cbar = plt.colorbar(pad=0.0)
         cbar.ax.tick_params('Data/Model',labelsize=15)
-        plt.text(-0.55,0.55,'Ratio',color='orange',ha='left',va='center',fontsize=20)
+        plt.text(-0.6,0.6,'Ratio',color='orange',ha='left',va='center',fontsize=20)
         plt.savefig('ratio_paper.eps', bbox_inches='tight')
         plt.clf()
         plt.clf()
