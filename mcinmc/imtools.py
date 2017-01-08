@@ -297,8 +297,8 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         plt.ylabel('Offset (")',fontsize=20)
         cbar = plt.colorbar(pad=0.0)
         cbar.ax.tick_params('Data/Model',labelsize=15)
-        plt.text(-0.55,0.55,im_label,color='orange',ha='left',va='center',fontsize=20)
-        plt.savefig(ratio_paper.eps, bbox_inches='tight')
+        plt.text(-0.55,0.55,'Ratio',color='orange',ha='left',va='center',fontsize=20)
+        plt.savefig('ratio_paper.eps', bbox_inches='tight')
         plt.clf()
         plt.clf()
         
