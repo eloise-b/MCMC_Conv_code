@@ -300,6 +300,15 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         plt.text(-0.6,0.6,'Ratio',color='orange',ha='left',va='center',fontsize=20)
         plt.savefig('ratio_paper.eps', bbox_inches='tight')
         plt.clf()
+        plt.imshow(tgt_sum/model_sum, interpolation='nearest', extent=extent, cmap=cm.PiYG)
+        plt.xticks(fontsize=15)
+        plt.yticks(fontsize=15)        
+        plt.xlabel('Offset (")',fontsize=20)
+        plt.ylabel('Offset (")',fontsize=20)
+        cbar = plt.colorbar(pad=0.0)
+        cbar.ax.tick_params('Data/Model',labelsize=15)
+        plt.text(-0.6,0.6,'Ratio',color='white',ha='left',va='center',fontsize=20)
+        plt.savefig('ratio_paper_2.eps', bbox_inches='tight')
         plt.clf()
         
     #Save the final image data as a pickle, so that it can be read by another code to make
