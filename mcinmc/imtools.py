@@ -290,7 +290,7 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         arcsinh_plot(model_sum, stretch, asinh_vmin=0, im_label=label+'Convolved Model', im_name='model_sum_paper.eps', extent=extent)
         arcsinh_plot(tgt_sum-model_sum, stretch, im_label=label+'Residual, Target - Model', im_name = 'resid_sum_paper.eps', extent=extent, scale_val=np.max(tgt_sum))
         #arcsinh_plot(tgt_sum/model_sum, stretch, im_label=label+'Ratio, Target/Model', im_name = 'ratio_paper.eps', extent=extent)#, scale_val=np.max(tgt_sum))        
-        plt.imshow(tgt_sum/model_sum, interpolation='nearest' extent=extent, cmap=cm.cubehelix)
+        plt.imshow(tgt_sum/model_sum, interpolation='nearest', extent=extent, cmap=cm.cubehelix)
         plt.xticks(fontsize=15)
         plt.yticks(fontsize=15)        
         plt.xlabel('Offset (")',fontsize=20)
