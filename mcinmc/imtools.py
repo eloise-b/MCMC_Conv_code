@@ -285,7 +285,7 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
     if plot_ims:
         arcsinh_plot(tgt_sum, stretch, asinh_vmin=-2, im_name='target_sum.eps', extent=extent)
         arcsinh_plot(model_sum, stretch, asinh_vmin=-2, im_name='model_sum.eps', extent=extent)
-        arcsinh_plot(tgt_sum-model_sum, stretch, im_name = 'resid_sum.eps', extent=extent, scale_val=np.max(tgt_sum))
+        arcsinh_plot(tgt_sum-model_sum, stretch, im_name = 'resid_sum.eps', res=True, extent=extent, scale_val=np.max(tgt_sum))
         plt.imshow(tgt_sum-model_sum, interpolation='nearest', extent=extent, cmap=cm.cubehelix)
         plt.colorbar(pad=0.0)
         plt.savefig('residual.eps',bbox_inches='tight')
