@@ -47,7 +47,7 @@ def ft_and_resample(cal_ims):
     return cal_ims_ft
 
 def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_name='arcsinh_im.png', \
-    scale_val=None, im_label=None):
+    scale_val=None, im_label=None, res=False):
     """A helper routine to make an arcsinh stretched image.
     
     Parameters
@@ -96,7 +96,10 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
         #plt.title(im_title)
         ticks = np.linspace(vmin,vmax,6)
         cbar = plt.colorbar(ticks=ticks, pad=0.0)
-        cbar.set_label('I/I'+r'$_{max}$',size=20)
+        if res:
+            cbar.set_label('I/I(data)'+r'$_{max}$',size=20)
+        else:
+            cbar.set_label('I/I'+r'$_{max}$',size=20)
         #Note that the following line doesn't work in interactive mode.
         if stretch <= 0.001:
             fmt_string = "{0:5.3f}"
@@ -117,7 +120,10 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
         plt.ylabel('Offset (")', fontsize=20)
         ticks = np.linspace(vmin,vmax,6)
         cbar = plt.colorbar(ticks=ticks, pad=0.0)
-        cbar.set_label('I/I'+r'$_{max}$',size=20)
+        if res:
+            cbar.set_label('I/I(data)'+r'$_{max}$',size=20)
+        else:
+            cbar.set_label('I/I'+r'$_{max}$',size=20)
         #Note that the following line doesn't work in interactive mode.
         if stretch <= 0.001:
             fmt_string = "{0:5.3f}"
@@ -289,7 +295,7 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         arcsinh_plot(tgt_sum, stretch, asinh_vmin=0, im_label='Data', im_name='target_sum_paper_labelled.eps', extent=extent)
         arcsinh_plot(tgt_sum, stretch, asinh_vmin=0, im_name='target_sum_paper.eps', extent=extent)
         arcsinh_plot(model_sum, stretch, asinh_vmin=0, im_label=label+'Conv Model', im_name='model_sum_paper.eps', extent=extent)
-        arcsinh_plot(tgt_sum-model_sum, stretch, im_label=label+'Residual, D - M', im_name = 'resid_sum_paper.eps', extent=extent, scale_val=np.max(tgt_sum))
+        arcsinh_plot(tgt_sum-model_sum, stretch, im_label=label+'Residual, D - M', res=True, im_name = 'resid_sum_paper.eps', extent=extent, scale_val=np.max(tgt_sum))
         #arcsinh_plot(tgt_sum/model_sum, stretch, im_label=label+'Ratio, Target/Model', im_name = 'ratio_paper.eps', extent=extent)#, scale_val=np.max(tgt_sum))        
         plt.imshow(tgt_sum/model_sum, interpolation='nearest', extent=extent, cmap=cm.cubehelix)
         plt.xticks(fontsize=15)
