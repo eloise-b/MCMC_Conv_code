@@ -97,9 +97,11 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
         ticks = np.linspace(vmin,vmax,6)
         cbar = plt.colorbar(ticks=ticks, pad=0.0)
         if res:
-            cbar.set_label('I/I(data)'+r'$_{max}$',size=23)
+            #cbar.set_label('I/I(data)'+r'$_{max}$',size=23)
+            cbar.set_label('I/max(I(data))',size=23)
         else:
-            cbar.set_label('I/I'+r'$_{max}$',size=23)
+            #cbar.set_label('I/I'+r'$_{max}$',size=23)
+            cbar.set_label('I/max(I)',size=23)
         #Note that the following line doesn't work in interactive mode.
         if stretch <= 0.001:
             fmt_string = "{0:5.3f}"
@@ -315,7 +317,7 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         plt.ylabel('Offset (")',fontsize=23)
         cbar = plt.colorbar(pad=0.0)
         cbar.set_label('Model/Data',size=23)
-        cbar.ax.tick_params(labelsize=15)
+        cbar.ax.tick_params(labelsize=18)
         plt.text(-0.6,0.6,label+'Ratio',color='black',ha='left',va='top',fontsize=23)
         plt.savefig('ratio_paper_2.eps', bbox_inches='tight')
         plt.clf()
