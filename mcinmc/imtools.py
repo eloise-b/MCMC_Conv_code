@@ -89,48 +89,48 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
     if im_label:
         plt.clf()
         plt.imshow(stretched_im, interpolation='nearest',cmap=cm.cubehelix, extent=extent, vmin=vmin, vmax=vmax)
-        plt.xticks(fontsize=15)
-        plt.yticks(fontsize=15)        
-        plt.xlabel('Offset (")',fontsize=20)
-        plt.ylabel('Offset (")',fontsize=20)
+        plt.xticks(fontsize=18)
+        plt.yticks(fontsize=18)        
+        plt.xlabel('Offset (")',fontsize=23)
+        plt.ylabel('Offset (")',fontsize=23)
         #plt.title(im_title)
         ticks = np.linspace(vmin,vmax,6)
         cbar = plt.colorbar(ticks=ticks, pad=0.0)
         if res:
-            cbar.set_label('I/I(data)'+r'$_{max}$',size=20)
+            cbar.set_label('I/I(data)'+r'$_{max}$',size=23)
         else:
-            cbar.set_label('I/I'+r'$_{max}$',size=20)
+            cbar.set_label('I/I'+r'$_{max}$',size=23)
         #Note that the following line doesn't work in interactive mode.
         if stretch <= 0.001:
             fmt_string = "{0:5.3f}"
         else:
             fmt_string = "{0:5.2f}"
         cbar.ax.set_yticklabels([fmt_string.format(y) for y in stretch*np.sinh(ticks)])
-        cbar.ax.tick_params(labelsize=15)
-        plt.text(-0.6,0.6,im_label,color='white',ha='left',va='center',fontsize=20)
+        cbar.ax.tick_params(labelsize=18)
+        plt.text(-0.6,0.6,im_label,color='white',ha='left',va='top',fontsize=23)
         plt.savefig(im_name, bbox_inches='tight')
         plt.clf()
     
     else:    
         plt.clf()
         plt.imshow(stretched_im, interpolation='nearest',cmap=cm.cubehelix, extent=extent, vmin=vmin, vmax=vmax)
-        plt.xticks(fontsize=15)
-        plt.yticks(fontsize=15)
-        plt.xlabel('Offset (")', fontsize=20)
-        plt.ylabel('Offset (")', fontsize=20)
+        plt.xticks(fontsize=18)
+        plt.yticks(fontsize=18)
+        plt.xlabel('Offset (")', fontsize=23)
+        plt.ylabel('Offset (")', fontsize=23)
         ticks = np.linspace(vmin,vmax,6)
         cbar = plt.colorbar(ticks=ticks, pad=0.0)
         if res:
-            cbar.set_label('I/I(data)'+r'$_{max}$',size=20)
+            cbar.set_label('I/I(data)'+r'$_{max}$',size=23)
         else:
-            cbar.set_label('I/I'+r'$_{max}$',size=20)
+            cbar.set_label('I/I'+r'$_{max}$',size=23)
         #Note that the following line doesn't work in interactive mode.
         if stretch <= 0.001:
             fmt_string = "{0:5.3f}"
         else:
             fmt_string = "{0:5.2f}"
         cbar.ax.set_yticklabels([fmt_string.format(y) for y in stretch*np.sinh(ticks)])
-        cbar.ax.tick_params(labelsize=15)
+        cbar.ax.tick_params(labelsize=18)
         plt.savefig(im_name, bbox_inches='tight')
         plt.clf()
 
@@ -297,26 +297,26 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         arcsinh_plot(model_sum, stretch, asinh_vmin=0, im_label=label+'Conv Model', im_name='model_sum_paper.eps', extent=extent)
         arcsinh_plot(tgt_sum-model_sum, stretch, im_label=label+'Residual, D - M', res=True, im_name = 'resid_sum_paper.eps', extent=extent, scale_val=np.max(tgt_sum))
         #arcsinh_plot(tgt_sum/model_sum, stretch, im_label=label+'Ratio, Target/Model', im_name = 'ratio_paper.eps', extent=extent)#, scale_val=np.max(tgt_sum))        
-        plt.imshow(tgt_sum/model_sum, interpolation='nearest', extent=extent, cmap=cm.cubehelix)
-        plt.xticks(fontsize=15)
-        plt.yticks(fontsize=15)        
-        plt.xlabel('Offset (")',fontsize=20)
-        plt.ylabel('Offset (")',fontsize=20)
+        plt.imshow(model_sum/tgt_sum, interpolation='nearest', extent=extent, cmap=cm.cubehelix)
+        plt.xticks(fontsize=18)
+        plt.yticks(fontsize=18)        
+        plt.xlabel('Offset (")',fontsize=23)
+        plt.ylabel('Offset (")',fontsize=23)
         cbar = plt.colorbar(pad=0.0)
-        cbar.set_label('Data/Model',size=20)
-        cbar.ax.tick_params(labelsize=15)
-        plt.text(-0.6,0.6,label+'Ratio',color='white',ha='left',va='center',fontsize=20)
+        cbar.set_label('Model/Data',size=23)
+        cbar.ax.tick_params(labelsize=18)
+        plt.text(-0.6,0.6,label+'Ratio',color='white',ha='left',va='top',fontsize=23)
         plt.savefig('ratio_paper.eps', bbox_inches='tight')
         plt.clf()
-        plt.imshow(tgt_sum/model_sum, interpolation='nearest', extent=extent, cmap=cm.PiYG)
-        plt.xticks(fontsize=15)
-        plt.yticks(fontsize=15)        
-        plt.xlabel('Offset (")',fontsize=20)
-        plt.ylabel('Offset (")',fontsize=20)
+        plt.imshow(model_sum/tgt_sum, interpolation='nearest', extent=extent, cmap=cm.PiYG)
+        plt.xticks(fontsize=18)
+        plt.yticks(fontsize=18)        
+        plt.xlabel('Offset (")',fontsize=23)
+        plt.ylabel('Offset (")',fontsize=23)
         cbar = plt.colorbar(pad=0.0)
-        cbar.set_label('Data/Model',size=20)
+        cbar.set_label('Model/Data',size=23)
         cbar.ax.tick_params(labelsize=15)
-        plt.text(-0.6,0.6,label+'Ratio',color='black',ha='left',va='center',fontsize=20)
+        plt.text(-0.6,0.6,label+'Ratio',color='black',ha='left',va='top',fontsize=23)
         plt.savefig('ratio_paper_2.eps', bbox_inches='tight')
         plt.clf()
         
