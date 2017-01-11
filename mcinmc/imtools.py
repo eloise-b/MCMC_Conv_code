@@ -180,6 +180,7 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
     pa =[]
     for p in range(len(pa_vert)):
         pa_c = pa_sky - pa_vert[p] + 360.
+        #pa_c = pa_vert[p] + pa_sky -270.  
         pa.append(pa_c)
     #-------------------------------------------------
     #Convolve the model image with a kernel to maintain flux conservation on rotation.
@@ -197,7 +198,7 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
     for i in range(ntgt):
         rotated_image = nd.interpolation.rotate(im, pa[i], reshape=False, order=1)
         if plot_ims:
-            arcsinh_plot(rotated_image, mcmc_stretch, im_name='mcmc_im_'+str(i)+'.png', extent=extent)
+            arcsinh_plot(rotated_image, mcmc_stretch, im_name='mcmc_im_'+str(i)+'.eps', extent=extent)
         rotated_image = rotated_image[mod_sz/2 - sz:mod_sz/2 + sz,mod_sz/2 - sz:mod_sz/2 + sz]
         rotated_image_ft = np.fft.rfft2(np.fft.fftshift(rotated_image))
         rotated_ims.append(rotated_image)
@@ -270,16 +271,16 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         
         if plot_ims:
             #plot the stretched version of the best model image
-            arcsinh_plot(best_model_ims[n], stretch, im_name = 'model_stretch_' + str(n) + '.png', extent=extent)
+            arcsinh_plot(best_model_ims[n], stretch, im_name = 'model_stretch_' + str(n) + '.eps', extent=extent)
             #plot the best model images, linear scaling.
             plt.clf()
             plt.imshow(best_model_ims[n], interpolation='nearest', extent=extent)
-            im_name = 'model_im_' + str(n) + '.png'
+            im_name = 'model_im_' + str(n) + '.eps'
             plt.savefig(im_name, bbox_inches='tight')
             plt.clf()
             plt.imshow(tgt_ims[n]-best_model_ims[n], interpolation='nearest',cmap=cm.cubehelix, extent=extent)
             plt.colorbar(pad=0.0)
-            stretch_name = 'target-model_' + str(n) + '.png'
+            stretch_name = 'target-model_' + str(n) + '.eps'
             plt.savefig(stretch_name, bbox_inches='tight')
             plt.clf()
             #generate_images(best_model_ims,n)
