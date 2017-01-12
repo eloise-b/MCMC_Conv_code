@@ -118,7 +118,7 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     for i in range(target_ims.shape[0]):
         f = np.flipud(target_ims[i])
         tgt_ims.append(f)
-    
+    tgt_ims = np.asarray(tgt_ims)
     #PSF Library                    
     calib_ims = pyfits.getdata(filename,1)
     #Flip the cal ims so North is up and East is left
@@ -126,6 +126,7 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     for i in range(calib_ims.shape[0]):
         f = np.flipud(calib_ims[i])
         cal_ims.append(f)
+    cal_ims = np.asarray(cal_ims)
     
     #Resample onto half pixel size and Fourier transform.
     cal_ims_ft = ft_and_resample(cal_ims)
