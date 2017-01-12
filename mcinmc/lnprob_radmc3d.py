@@ -112,10 +112,20 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
             'planet_r':x[12]}
                 
     #Target images.
-    tgt_ims = pyfits.getdata(filename,0)
-
+    target_ims = pyfits.getdata(filename,0)
+    #Flip the target ims so North is up and East is left
+    tgt_ims = []
+    for i in range(target_ims.shape[0]):
+        f = np.flipud(target_ims[i])
+        tgt_ims.append(f)
+    
     #PSF Library                    
-    cal_ims = pyfits.getdata(filename,1)
+    calib_ims = pyfits.getdata(filename,1)
+    #Flip the cal ims so North is up and East is left
+    cal_ims = []
+    for i in range(calib_ims.shape[0]):
+        f = np.flipud(calib_ims[i])
+        cal_ims.append(f)
     
     #Resample onto half pixel size and Fourier transform.
     cal_ims_ft = ft_and_resample(cal_ims)
