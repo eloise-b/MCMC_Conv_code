@@ -283,6 +283,11 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
             stretch_name = 'target-model_' + str(n) + '.eps'
             plt.savefig(stretch_name, bbox_inches='tight')
             plt.clf()
+            plt.imshow(best_model_ims[n]/tgt_ims[n], interpolation='nearest',cmap=cm.PiYG, extent=extent, vmin=0., vmax=2.)
+            plt.colorbar(pad=0.0)
+            ratio_name = 'ratio_' + str(n) + '.eps'
+            plt.savefig(ratio_name, bbox_inches='tight')
+            plt.clf()
             #generate_images(best_model_ims,n)
 
     if plot_ims:
