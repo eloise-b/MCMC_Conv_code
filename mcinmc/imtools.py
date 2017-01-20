@@ -176,7 +176,7 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
     stretch=0.01
     mcmc_stretch=1e-4
     
-    '''
+    #'''
     #since the data is rotated by itself, this section is no longer needed
     #the chip pa to be used
     pa =[]
@@ -184,7 +184,7 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         pa_c = pa_sky - pa_vert[p] + 360.
         #pa_c = pa_vert[p] + pa_sky -270.  
         pa.append(pa_c)
-    '''
+    #'''
     #-------------------------------------------------
     #Convolve the model image with a kernel to maintain flux conservation on rotation.
     if (preconvolve):
@@ -195,7 +195,7 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         im = nd.filters.convolve(im,kernel)                    
     
     #-------------------------------------------------
-    '''
+    #'''
     #Since the model image only needs to be rotated once, this loop is no longer relevant
     # Do the rotation Corresponding to the position angle input.  
     rotated_ims = []
@@ -225,7 +225,7 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         arcsinh_plot(rotated_image, mcmc_stretch, im_name='rot_im.eps', extent=extent)
     if paper_ims:
         arcsinh_plot(rotated_image, mcmc_stretch, im_label=label+'Model', im_name='rot_im_paper.eps', extent=extent)
-    
+    '''
     #Output the model rotated image if needed.
     #if plot_ims:
     #    arcsinh_plot(rotated_image, mcmc_stretch, im_name='mcmc_im.png', extent=extent)

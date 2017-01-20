@@ -126,8 +126,8 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     tgt_ims = []
     for i in range(target_ims.shape[0]):
         f = np.flipud(target_ims[i])
-        r = nd.interpolation.rotate(f, -pa_vert[i], reshape=False, order=1)
-        tgt_ims.append(r)
+        #r = nd.interpolation.rotate(f, -pa_vert[i], reshape=False, order=1)
+        tgt_ims.append(f)
     tgt_ims = np.asarray(tgt_ims)
    
     #Flip the cal ims so 0,0 is in the bottom left, not the top left
@@ -135,8 +135,8 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     cal_ims = []
     for i in range(calib_ims.shape[0]):
         f = np.flipud(calib_ims[i])
-        r = nd.interpolation.rotate(f, -pa_vert[i], reshape=False, order=1)
-        cal_ims.append(r)
+        #r = nd.interpolation.rotate(f, -pa_vert[i], reshape=False, order=1)
+        cal_ims.append(f)
     cal_ims = np.asarray(cal_ims)
     
     #Resample onto half pixel size and Fourier transform.
