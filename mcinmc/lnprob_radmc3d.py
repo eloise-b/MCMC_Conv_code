@@ -126,7 +126,7 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     tgt_ims = []
     for i in range(target_ims.shape[0]):
         f = np.flipud(target_ims[i])
-        r = nd.interpolation.rotate(f, -pa[i], reshape=False, order=1)
+        r = nd.interpolation.rotate(f, -pa_vert[i], reshape=False, order=1)
         tgt_ims.append(r)
     tgt_ims = np.asarray(tgt_ims)
    
@@ -135,7 +135,7 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     cal_ims = []
     for i in range(calib_ims.shape[0]):
         f = np.flipud(calib_ims[i])
-        r = nd.interpolation.rotate(f, -pa[i], reshape=False, order=1)
+        r = nd.interpolation.rotate(f, -pa_vert[i], reshape=False, order=1)
         cal_ims.append(r)
     cal_ims = np.asarray(cal_ims)
     
