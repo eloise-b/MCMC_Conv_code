@@ -113,26 +113,36 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
                 
     #Target images.
     target_ims = pyfits.getdata(filename,0)
-    #Flip the target ims so North is up and East is left
+    
+    #PSF Library                    
+    calib_ims = pyfits.getdata(filename,1)
+    
+    #Get the pa information for the object from the fits file
+    pa_vert = pyfits.getdata(filename,2)['pa'] 
+    
+    
+    #Flip the target ims so 0,0 is in the bottom left, not the top left
+    #Rotate the data so that you undo what the telescope rotation does, so that North is up and East is left
     tgt_ims = []
     for i in range(target_ims.shape[0]):
         f = np.flipud(target_ims[i])
-        tgt_ims.append(f)
+        r = nd.interpolation.rotate(f, -pa[i], reshape=False, order=1)
+        tgt_ims.append(r)
     tgt_ims = np.asarray(tgt_ims)
-    #PSF Library                    
-    calib_ims = pyfits.getdata(filename,1)
-    #Flip the cal ims so North is up and East is left
+   
+    #Flip the cal ims so 0,0 is in the bottom left, not the top left
+    #Rotate the data so that you undo what the telescope rotation does, so that North is up and East is left
     cal_ims = []
     for i in range(calib_ims.shape[0]):
         f = np.flipud(calib_ims[i])
-        cal_ims.append(f)
+        r = nd.interpolation.rotate(f, -pa[i], reshape=False, order=1)
+        cal_ims.append(r)
     cal_ims = np.asarray(cal_ims)
     
     #Resample onto half pixel size and Fourier transform.
     cal_ims_ft = ft_and_resample(cal_ims)
     
-    #Get the pa information for the object from the fits file
-    pa_vert = pyfits.getdata(filename,2)['pa'] 
+    
     
     #read in the star_only image for comparison
     imag_obj_star=r3.image.readImage('image_star.out') 
