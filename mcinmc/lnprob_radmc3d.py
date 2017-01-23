@@ -192,7 +192,8 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     #if kappa == "['56e-3_pah']":
     #    os.system('cp ../dustkappa_56e-3_pah.inp .')
     
-    kappa_str = 'cp ../dustkappa_'+kappa+'.inp .'
+    k =  kappa.split("'")[1]
+    kappa_str = 'cp ../dustkappa_'+k+'.inp .'
     os.system(kappa_str)
     
     r3.analyze.writeDefaultParfile('ppdisk')
