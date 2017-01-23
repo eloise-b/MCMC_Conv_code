@@ -47,7 +47,7 @@ def ft_and_resample(cal_ims):
     return cal_ims_ft
 
 def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_name='arcsinh_im.png', \
-    scale_val=None, im_label=None, res=False):
+    scale_val=None, im_label=None, res=False, north=False, angle=0.):
     """A helper routine to make an arcsinh stretched image.
     
     Parameters
@@ -85,8 +85,39 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
     else:
         vmin = np.min(stretched_im)
     
-    
-    if im_label:
+    if north and im_label:
+        angle = pa_vert[8]*(np.pi/180)
+        arrow_x1 = -0.2*np.sin(angle)
+        arrow_y2 = 0.4*np.cos(angle)
+        arrow_y1 = 0.2*np.cos(angle)
+        arrow_x2 = -0.4*np.sin(angle)
+        plt.clf()
+        plt.imshow(stretched_im, interpolation='nearest',cmap=cm.cubehelix, extent=extent, vmin=vmin, vmax=vmax)
+        plt.xticks(fontsize=18)
+        plt.yticks(fontsize=18)        
+        plt.xlabel('Offset (")',fontsize=23)
+        plt.ylabel('Offset (")',fontsize=23)
+        #plt.title(im_title)
+        ticks = np.linspace(vmin,vmax,6)
+        cbar = plt.colorbar(ticks=ticks, pad=0.0)
+        if res:
+            #cbar.set_label('I/I(data)'+r'$_{max}$',size=23)
+            cbar.set_label('I/max(I(data))',size=23)
+        else:
+            #cbar.set_label('I/I'+r'$_{max}$',size=23)
+            cbar.set_label('I/max(I)',size=23)
+        #Note that the following line doesn't work in interactive mode.
+        if stretch <= 0.001:
+            fmt_string = "{0:5.3f}"
+        else:
+            fmt_string = "{0:5.2f}"
+        cbar.ax.set_yticklabels([fmt_string.format(y) for y in stretch*np.sinh(ticks)])
+        cbar.ax.tick_params(labelsize=18)
+        plt.text(-0.6,0.6,im_label,color='white',ha='left',va='top',fontsize=23)
+        plt.arrow(arrow_x1, arrow_y1, arrow_x2-arrow_x1, arrow_y2-arrow_y1, fc="red", ec="red")
+        plt.savefig(im_name, bbox_inches='tight')
+        plt.clf()   
+    elif im_label:
         plt.clf()
         plt.imshow(stretched_im, interpolation='nearest',cmap=cm.cubehelix, extent=extent, vmin=vmin, vmax=vmax)
         plt.xticks(fontsize=18)
@@ -112,7 +143,37 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
         plt.text(-0.6,0.6,im_label,color='white',ha='left',va='top',fontsize=23)
         plt.savefig(im_name, bbox_inches='tight')
         plt.clf()
-    
+    elif north:
+        angle = pa_vert[8]*(np.pi/180)
+        arrow_x1 = -0.2*np.sin(angle)
+        arrow_y2 = 0.4*np.cos(angle)
+        arrow_y1 = 0.2*np.cos(angle)
+        arrow_x2 = -0.4*np.sin(angle)
+        plt.clf()
+        plt.imshow(stretched_im, interpolation='nearest',cmap=cm.cubehelix, extent=extent, vmin=vmin, vmax=vmax)
+        plt.xticks(fontsize=18)
+        plt.yticks(fontsize=18)        
+        plt.xlabel('Offset (")',fontsize=23)
+        plt.ylabel('Offset (")',fontsize=23)
+        #plt.title(im_title)
+        ticks = np.linspace(vmin,vmax,6)
+        cbar = plt.colorbar(ticks=ticks, pad=0.0)
+        if res:
+            #cbar.set_label('I/I(data)'+r'$_{max}$',size=23)
+            cbar.set_label('I/max(I(data))',size=23)
+        else:
+            #cbar.set_label('I/I'+r'$_{max}$',size=23)
+            cbar.set_label('I/max(I)',size=23)
+        #Note that the following line doesn't work in interactive mode.
+        if stretch <= 0.001:
+            fmt_string = "{0:5.3f}"
+        else:
+            fmt_string = "{0:5.2f}"
+        cbar.ax.set_yticklabels([fmt_string.format(y) for y in stretch*np.sinh(ticks)])
+        cbar.ax.tick_params(labelsize=18)
+        plt.arrow(arrow_x1, arrow_y1, arrow_x2-arrow_x1, arrow_y2-arrow_y1, fc="red", ec="red")
+        plt.savefig(im_name, bbox_inches='tight')
+        plt.clf()
     else:    
         plt.clf()
         plt.imshow(stretched_im, interpolation='nearest',cmap=cm.cubehelix, extent=extent, vmin=vmin, vmax=vmax)
@@ -343,6 +404,10 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         plt.text(-0.6,0.6,label+'Ratio',color='black',ha='left',va='top',fontsize=23)
         plt.savefig('ratio_paper_2.eps', bbox_inches='tight')
         plt.clf()
+        
+        #images with arrows on them:
+        for i in range(ntgt):
+            angle = pa_vert[i]*(np.pi/180)
         
     #Save the final image data as a pickle, so that it can be read by another code to make
     #images for a paper later
