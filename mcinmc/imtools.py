@@ -360,6 +360,25 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         rot_mod_file = open('rot_mod.pkl','w')
         pickle.dump(rotated_image,rot_mod_file)
         rot_mod_file.close()
+        #also make pickles of the not summed images to be able to work with them later
+        tgt_file = open('tgt_ims.pkl','w')
+        pickle.dump(tgt_ims,tgt_file)
+        tgt_file.close()
+        model_file = open('model_ims.pkl','w')
+        pickle.dump(best_model_ims,model_file)
+        model_file.close()
+        
+        res_ims = []
+        for i in range(ntgt):
+            r = tgt_ims[i] - best_model_ims[i]
+            res_ims.append(r)
+        res_ims = np.asarray(res_ims)
+        res_file = open('res_ims.pkl','w')
+        pickle.dump(res_ims,res_file)
+        res_file.close()
+        #rot_mod_file = open('rot_mod.pkl','w')
+        #pickle.dump(rotated_image,rot_mod_file)
+        #rot_mod_file.close()
     
     if make_sed:
         #SED stuff
