@@ -201,7 +201,8 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
 #-------------------------------------------------------------------------------------
 def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi_txt='',plot_ims=True,
     preconvolve=True, pxscale=0.01, save_im_data=True, make_sed=True, paper_ims=True, label='',
-    model_chi_dir = '/Users/eloisebirchall/Documents/Uni/Masters/radmc-3d/IRS_48_grid/MCMC_stuff/'):
+    model_chi_dir = '/Users/eloisebirchall/Documents/Uni/Masters/radmc-3d/IRS_48_grid/MCMC_stuff/',
+    north_ims=False):
     """Rotate a model image, and find the best fit. Output (for now!) 
     goes to file in the current directory.
     
@@ -382,16 +383,16 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         arcsinh_plot(model_sum, stretch, asinh_vmin=0, im_label=label+'Conv Model', im_name='model_sum_paper.eps', extent=extent)
         arcsinh_plot(tgt_sum-model_sum, stretch, im_label=label+'Residual, D - M', res=True, im_name = 'resid_sum_paper.eps', extent=extent, scale_val=np.max(tgt_sum))
         #arcsinh_plot(tgt_sum/model_sum, stretch, im_label=label+'Ratio, Target/Model', im_name = 'ratio_paper.eps', extent=extent)#, scale_val=np.max(tgt_sum))        
-        plt.imshow(model_sum/tgt_sum, interpolation='nearest', extent=extent, cmap=cm.cubehelix, vmin=0., vmax=2.)
-        plt.xticks(fontsize=18)
-        plt.yticks(fontsize=18)        
-        plt.xlabel('Offset (")',fontsize=23)
-        plt.ylabel('Offset (")',fontsize=23)
-        cbar = plt.colorbar(pad=0.0)
-        cbar.set_label('Model/Data',size=23)
-        cbar.ax.tick_params(labelsize=18)
-        plt.text(-0.6,0.6,label+'Ratio',color='white',ha='left',va='top',fontsize=23)
-        plt.savefig('ratio_paper.eps', bbox_inches='tight')
+        #plt.imshow(model_sum/tgt_sum, interpolation='nearest', extent=extent, cmap=cm.cubehelix, vmin=0., vmax=2.)
+        #plt.xticks(fontsize=18)
+        #plt.yticks(fontsize=18)        
+        #plt.xlabel('Offset (")',fontsize=23)
+        #plt.ylabel('Offset (")',fontsize=23)
+        #cbar = plt.colorbar(pad=0.0)
+        #cbar.set_label('Model/Data',size=23)
+        #cbar.ax.tick_params(labelsize=18)
+        #plt.text(-0.6,0.6,label+'Ratio',color='white',ha='left',va='top',fontsize=23)
+        #plt.savefig('ratio_paper.eps', bbox_inches='tight')
         plt.clf()
         plt.imshow(model_sum/tgt_sum, interpolation='nearest', extent=extent, cmap=cm.PiYG, vmin=0., vmax=2.)
         plt.xticks(fontsize=18)
@@ -404,10 +405,16 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         plt.text(-0.6,0.6,label+'Ratio',color='black',ha='left',va='top',fontsize=23)
         plt.savefig('ratio_paper_2.eps', bbox_inches='tight')
         plt.clf()
-        
+    
+    if north_ims:    
         #images with arrows on them:
         for i in range(ntgt):
             angle = pa_vert[i]*(np.pi/180)
+            north_name = 'target_north_'+str(i)'.eps'
+            arcsinh_plot(tgt_ims[i], stretch, asinh_vmin=0, north=True, im_name=north_name, extent=extent)
+            north_name = 'resid_north_'+str(i)'.eps'
+            arcsinh_plot(tgt_ims[i]-best_model_ims[i], stretch, north=True, res=True, im_name = north_name, extent=extent, scale_val=np.max(tgt_ims[i]))
+
         
     #Save the final image data as a pickle, so that it can be read by another code to make
     #images for a paper later
