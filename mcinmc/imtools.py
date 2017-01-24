@@ -275,7 +275,10 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
     if plot_ims:
         arcsinh_plot(np.average(rotated_image, axis=0), mcmc_stretch, im_name='rot_im.eps', extent=extent)
     if paper_ims:
-        arcsinh_plot(np.average(rotated_image, axis=0), mcmc_stretch, im_label=label+'Model', im_name='rot_im_paper.eps', extent=extent)
+        arcsinh_plot(np.average(rotated_image, axis=0), mcmc_stretch, im_label=label+'Model', im_name='rot_im_av_paper.eps', extent=extent)
+        rot_model = nd.interpolation.rotate(im, pa_sky, reshape=False, order=1)
+        arcsinh_plot(rot_model, mcmc_stretch, im_label=label+'Model', im_name='rot_im_paper.eps', extent=extent)
+        
     '''
     
     #do the rotation of the image for the sky pa
@@ -382,6 +385,8 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         arcsinh_plot(tgt_sum, stretch, asinh_vmin=0, im_name='target_sum_paper.eps', extent=extent)
         arcsinh_plot(model_sum, stretch, asinh_vmin=0, im_label=label+'Conv Model', im_name='model_sum_paper.eps', extent=extent)
         arcsinh_plot(tgt_sum-model_sum, stretch, im_label=label+'Residual, D - M', res=True, im_name = 'resid_sum_paper.eps', extent=extent, scale_val=np.max(tgt_sum))
+        #plot a model image only rotated by the pa
+        
         #arcsinh_plot(tgt_sum/model_sum, stretch, im_label=label+'Ratio, Target/Model', im_name = 'ratio_paper.eps', extent=extent)#, scale_val=np.max(tgt_sum))        
         #plt.imshow(model_sum/tgt_sum, interpolation='nearest', extent=extent, cmap=cm.cubehelix, vmin=0., vmax=2.)
         #plt.xticks(fontsize=18)
