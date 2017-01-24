@@ -410,9 +410,9 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         #images with arrows on them:
         for i in range(ntgt):
             angle = pa_vert[i]*(np.pi/180)
-            north_name = 'target_north_'+str(i)'.eps'
+            north_name = 'target_north_'+str(i)+'.eps'
             arcsinh_plot(tgt_ims[i], stretch, asinh_vmin=0, north=True, im_name=north_name, extent=extent)
-            north_name = 'resid_north_'+str(i)'.eps'
+            north_name = 'resid_north_'+str(i)+'.eps'
             arcsinh_plot(tgt_ims[i]-best_model_ims[i], stretch, north=True, res=True, im_name = north_name, extent=extent, scale_val=np.max(tgt_ims[i]))
 
         
