@@ -350,8 +350,8 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
                                                sz//2 - xypeak_tgt[1], axis=1)
         model_sum += np.roll(np.roll(best_model_ims[n], sz//2 - xypeak_tgt[0], axis=0), 
                                                         sz//2 - xypeak_tgt[1], axis=1)
-        tgt_rot_sum += rotated_image = nd.interpolation.rotate((np.roll(np.roll(tgt_ims[n], sz//2 - xypeak_tgt[0], axis=0), 
-                                               sz//2 - xypeak_tgt[1], axis=1)), pa_vert[n], reshape=False, order=1)
+        tgt_shift = np.roll(np.roll(tgt_ims[n], sz//2 - xypeak_tgt[0], axis=0), sz//2 - xypeak_tgt[1], axis=1)
+        tgt_rot_sum += nd.interpolation.rotate(tgt_shift, pa_vert[n], reshape=False, order=1)
         
         if plot_ims:
             #plot the stretched version of the best model image
