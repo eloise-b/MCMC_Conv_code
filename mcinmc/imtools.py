@@ -86,7 +86,7 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
         vmin = np.min(stretched_im)
     
     if north and im_label:
-        angle = pa_vert[8]*(np.pi/180)
+        #angle = pa_vert[8]*(np.pi/180)
         arrow_x1 = -0.2*np.sin(angle)
         arrow_y2 = 0.4*np.cos(angle)
         arrow_y1 = 0.2*np.cos(angle)
@@ -144,7 +144,7 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
         plt.savefig(im_name, bbox_inches='tight')
         plt.clf()
     elif north:
-        angle = pa_vert[8]*(np.pi/180)
+        #angle = pa_vert[8]*(np.pi/180)
         arrow_x1 = -0.2*np.sin(angle)
         arrow_y2 = 0.4*np.cos(angle)
         arrow_y1 = 0.2*np.cos(angle)
