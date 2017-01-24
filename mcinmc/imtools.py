@@ -70,6 +70,12 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
         The value to divide the data by. Defaults to max(im)
     im_title: string
         if you want to have the image have a title, but something in here
+    res: Boolean
+        is the image a residual image?
+    north: Bool
+        do you want the north arrows plotted on the images
+    angle: float
+        at what angle should the north arrow be at    
     """
     if not scale_val:
         scale_val = np.max(im)
