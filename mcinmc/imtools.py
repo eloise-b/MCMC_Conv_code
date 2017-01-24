@@ -313,6 +313,7 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
     best_convs = np.empty( ntgt, dtype=np.int)
     tgt_sum = np.zeros( (sz,sz) )
     model_sum = np.zeros( (sz,sz) )
+    tgt_rot_sum = np.zeros( (sz,sz) )
     for n in range(ntgt):
         ims_shifted = np.empty( (ncal,sz,sz) )
         #Find the peak for the target
@@ -349,6 +350,8 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
                                                sz//2 - xypeak_tgt[1], axis=1)
         model_sum += np.roll(np.roll(best_model_ims[n], sz//2 - xypeak_tgt[0], axis=0), 
                                                         sz//2 - xypeak_tgt[1], axis=1)
+        tgt_rot_sum += rotated_image = nd.interpolation.rotate((np.roll(np.roll(tgt_ims[n], sz//2 - xypeak_tgt[0], axis=0), 
+                                               sz//2 - xypeak_tgt[1], axis=1)), pa_vert[n], reshape=False, order=1)
         
         if plot_ims:
             #plot the stretched version of the best model image
@@ -383,6 +386,7 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
     if paper_ims:
         arcsinh_plot(tgt_sum, stretch, asinh_vmin=0, im_label='Data', im_name='target_sum_paper_labelled.eps', extent=extent)
         arcsinh_plot(tgt_sum, stretch, asinh_vmin=0, im_name='target_sum_paper.eps', extent=extent)
+        arcsinh_plot(tgt_rot_sum, stretch, asinh_vmin=0, im_name='target_rot_sum_paper.eps', extent=extent)
         arcsinh_plot(model_sum, stretch, asinh_vmin=0, im_label=label+'Conv Model', im_name='model_sum_paper.eps', extent=extent)
         arcsinh_plot(tgt_sum-model_sum, stretch, im_label=label+'Residual, D - M', res=True, im_name = 'resid_sum_paper.eps', extent=extent, scale_val=np.max(tgt_sum))
         #plot a model image only rotated by the pa
@@ -411,7 +415,7 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         plt.savefig('ratio_paper_2.eps', bbox_inches='tight')
         plt.clf()
     
-    if north_ims:    
+    if north_ims:
         #images with arrows on them:
         for i in range(ntgt):
             angle = pa_vert[i]*(np.pi/180)
@@ -419,13 +423,16 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
             arcsinh_plot(tgt_ims[i], stretch, asinh_vmin=0, north=True, angle=angle, im_name=north_name, extent=extent)
             north_name = 'resid_north_'+str(i)+'.eps'
             arcsinh_plot(tgt_ims[i]-best_model_ims[i], stretch, north=True, angle=angle, res=True, im_name = north_name, extent=extent, scale_val=np.max(tgt_ims[i]))
-
+        
         
     #Save the final image data as a pickle, so that it can be read by another code to make
     #images for a paper later
     if save_im_data:
         tgt_file = open('tgt_sum.pkl','w')
         pickle.dump(tgt_sum,tgt_file)
+        tgt_file.close()
+        tgt_file = open('tgt_rot_sum.pkl','w')
+        pickle.dump(tgt_rot_sum,tgt_file)
         tgt_file.close()
         model_file = open('model_sum.pkl','w')
         pickle.dump(model_sum,model_file)
