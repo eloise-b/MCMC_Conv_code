@@ -444,6 +444,9 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         model_file = open('model_ims.pkl','w')
         pickle.dump(best_model_ims,model_file)
         model_file.close()
+        rot_file = open('single_rot_mod.pkl','w')
+        pickle.dump(rot_model,rot_file)
+        rot_file.close()
         
         res_ims = []
         for i in range(ntgt):
