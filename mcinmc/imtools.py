@@ -47,7 +47,8 @@ def ft_and_resample(cal_ims):
     return cal_ims_ft
 
 def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_name='arcsinh_im.png', \
-    scale_val=None, im_label=None, res=False, north=False, angle=0.):
+    scale_val=None, im_label=None, res=False, north=False, angle=0., x_ax_label = 'Offset (")',\
+    y_ax_label = 'Offset (")'):
     """A helper routine to make an arcsinh stretched image.
     
     Parameters
@@ -75,7 +76,11 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
     north: Bool
         do you want the north arrows plotted on the images
     angle: float
-        at what angle should the north arrow be at    
+        at what angle should the north arrow be at   
+    x_ax_label: string
+        what you want the label on the x axis to be
+    y_ax_label: string
+        what you want the label on the y axis to be  
     """
     if not scale_val:
         scale_val = np.max(im)
@@ -101,8 +106,8 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
         plt.imshow(stretched_im, interpolation='nearest',cmap=cm.cubehelix, extent=extent, vmin=vmin, vmax=vmax)
         plt.xticks(fontsize=18)
         plt.yticks(fontsize=18)        
-        plt.xlabel('Offset (")',fontsize=23)
-        plt.ylabel('Offset (")',fontsize=23)
+        plt.xlabel(x_ax_label,fontsize=23)
+        plt.ylabel(y_ax_label,fontsize=23)
         #plt.title(im_title)
         ticks = np.linspace(vmin,vmax,6)
         cbar = plt.colorbar(ticks=ticks, pad=0.0)
@@ -128,8 +133,8 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
         plt.imshow(stretched_im, interpolation='nearest',cmap=cm.cubehelix, extent=extent, vmin=vmin, vmax=vmax)
         plt.xticks(fontsize=18)
         plt.yticks(fontsize=18)        
-        plt.xlabel('Offset (")',fontsize=23)
-        plt.ylabel('Offset (")',fontsize=23)
+        plt.xlabel(x_ax_label,fontsize=23)
+        plt.ylabel(y_ax_label,fontsize=23)
         #plt.title(im_title)
         ticks = np.linspace(vmin,vmax,6)
         cbar = plt.colorbar(ticks=ticks, pad=0.0)
@@ -159,8 +164,8 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
         plt.imshow(stretched_im, interpolation='nearest',cmap=cm.cubehelix, extent=extent, vmin=vmin, vmax=vmax)
         plt.xticks(fontsize=18)
         plt.yticks(fontsize=18)        
-        plt.xlabel('Offset (")',fontsize=23)
-        plt.ylabel('Offset (")',fontsize=23)
+        plt.xlabel(x_ax_label,fontsize=23)
+        plt.ylabel(y_ax_label,fontsize=23)
         #plt.title(im_title)
         ticks = np.linspace(vmin,vmax,6)
         cbar = plt.colorbar(ticks=ticks, pad=0.0)
@@ -185,8 +190,8 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
         plt.imshow(stretched_im, interpolation='nearest',cmap=cm.cubehelix, extent=extent, vmin=vmin, vmax=vmax)
         plt.xticks(fontsize=18)
         plt.yticks(fontsize=18)
-        plt.xlabel('Offset (")', fontsize=23)
-        plt.ylabel('Offset (")', fontsize=23)
+        plt.xlabel(x_ax_label,fontsize=23)
+        plt.ylabel(y_ax_label,fontsize=23)
         ticks = np.linspace(vmin,vmax,6)
         cbar = plt.colorbar(ticks=ticks, pad=0.0)
         if res:
@@ -241,6 +246,7 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
     ntgt = tgt_ims.shape[0]
     ncal = cal_ims_ft.shape[0]
     extent = [-pxscale*sz/2, pxscale*sz/2, -pxscale*sz/2, pxscale*sz/2]
+    extent_radec = [pxscale*sz/2, -pxscale*sz/2, -pxscale*sz/2, pxscale*sz/2]
     stretch=0.01
     mcmc_stretch=1e-4
     
