@@ -294,7 +294,7 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
         print("*** Figures saved in " + pid_str + " ***")
     
     #Return log likelihood
-    lnlike = -1*(0.5*chi_tot/temperature +((np.log10(rel_flux)-np.log10(rel_intens))**2/(2*0.01)))
+    lnlike = -1*(0.5*chi_tot/temperature +((np.log10(rel_flux)-np.log10(rel_intens))**2/(2*0.01**2)))
     print("*** Computed likelihood {0:7.1f} for thread {1:s} ***".format(lnlike,pid_str))
 
     c = open('chain'+pid_str+'.txt','a')
