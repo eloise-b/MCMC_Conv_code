@@ -473,9 +473,12 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         rot_ratio_sum = np.zeros( (sz,sz) )
         #print("in rotate present")
         for i in range(ntgt):
-            rot_best_model_ims[i] = nd.interpolation.rotate(best_model_ims[i], -pa_vert[i], reshape=False, order=1)
-            rot_residuals[i] = nd.interpolation.rotate(residual_ims[i], -pa_vert[i], reshape=False, order=1)
-            rot_ratios[i] = nd.interpolation.rotate(ratio_ims[i], -pa_vert[i], reshape=False, order=1)
+            rot_best_model_ims[i] = nd.interpolation.rotate(np.roll(np.roll(best_model_ims[i], sz//2 - xypeak_tgt[0], axis=0), 
+                                               sz//2 - xypeak_tgt[1], axis=1), -pa_vert[i], reshape=False, order=1)
+            rot_residuals[i] = nd.interpolation.rotate(np.roll(np.roll(residual_ims[i], sz//2 - xypeak_tgt[0], axis=0), 
+                                               sz//2 - xypeak_tgt[1], axis=1), -pa_vert[i], reshape=False, order=1)
+            rot_ratios[i] = nd.interpolation.rotate(np.roll(np.roll(ratio_ims[i], sz//2 - xypeak_tgt[0], axis=0), 
+                                               sz//2 - xypeak_tgt[1], axis=1), -pa_vert[i], reshape=False, order=1)
             #print("in rotate present for loop")
             rot_conv_sum += rot_best_model_ims[i]
             rot_resid_sum += rot_residuals[i]
