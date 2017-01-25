@@ -322,6 +322,8 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
     #Go through the target images, find the best fitting calibrator image and record the chi-sqaured.
     chi_squared = np.empty( (ntgt,ncal) )
     best_model_ims = np.empty( (ntgt,sz,sz) )
+    residual_ims = np.empty( (ntgt,sz,sz) )
+    ratio_ims = np.empty( (ntgt,sz,sz) )
     best_chi2s = np.empty( ntgt )
     best_convs = np.empty( ntgt, dtype=np.int)
     tgt_sum = np.zeros( (sz,sz) )
@@ -357,6 +359,8 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         best_model_ims[n] = ims_shifted[best_conv]
         best_convs[n] = best_conv
         print("Tgt: {0:d} Cal: {1:d}".format(n,best_conv))
+        residual_ims[n] = tgt_ims[n]-best_model_ims[n]
+        ratio_ims[n] = best_model_ims[n]/tgt_ims[n]
         
         #Create a shifted residual image.
         tgt_sum += np.roll(np.roll(tgt_ims[n], sz//2 - xypeak_tgt[0], axis=0), 
@@ -364,7 +368,7 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         model_sum += np.roll(np.roll(best_model_ims[n], sz//2 - xypeak_tgt[0], axis=0), 
                                                         sz//2 - xypeak_tgt[1], axis=1)
         tgt_shift = np.roll(np.roll(tgt_ims[n], sz//2 - xypeak_tgt[0], axis=0), sz//2 - xypeak_tgt[1], axis=1)
-        tgt_rot_sum += nd.interpolation.rotate(tgt_shift, pa_vert[n], reshape=False, order=1)
+        tgt_rot_sum += nd.interpolation.rotate(tgt_shift, -pa_vert[n], reshape=False, order=1)
         
         if plot_ims:
             #plot the stretched version of the best model image
@@ -375,12 +379,12 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
             im_name = 'model_im_' + str(n) + '.eps'
             plt.savefig(im_name, bbox_inches='tight')
             plt.clf()
-            plt.imshow(tgt_ims[n]-best_model_ims[n], interpolation='nearest',cmap=cm.cubehelix, extent=extent)
+            plt.imshow(residual_ims[n], interpolation='nearest',cmap=cm.cubehelix, extent=extent)
             plt.colorbar(pad=0.0)
             stretch_name = 'target-model_' + str(n) + '.eps'
             plt.savefig(stretch_name, bbox_inches='tight')
             plt.clf()
-            plt.imshow(best_model_ims[n]/tgt_ims[n], interpolation='nearest',cmap=cm.PiYG, extent=extent, vmin=0., vmax=2.)
+            plt.imshow(ratio_ims[n], interpolation='nearest',cmap=cm.PiYG, extent=extent, vmin=0., vmax=2.)
             plt.colorbar(pad=0.0)
             ratio_name = 'ratio_' + str(n) + '.eps'
             plt.savefig(ratio_name, bbox_inches='tight')
@@ -437,6 +441,12 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
             north_name = 'resid_north_'+str(i)+'.eps'
             arcsinh_plot(tgt_ims[i]-best_model_ims[i], stretch, north=True, angle=angle, res=True, im_name = north_name, extent=extent, scale_val=np.max(tgt_ims[i]))
         
+    if rotate_present:
+        rot_best_model_ims = []
+        rot_residuals = []
+        rot_ratios = []
+        
+    
         
     #Save the final image data as a pickle, so that it can be read by another code to make
     #images for a paper later
