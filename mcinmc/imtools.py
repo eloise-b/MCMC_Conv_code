@@ -289,7 +289,8 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
     if paper_ims:
         arcsinh_plot(np.average(rotated_image, axis=0), mcmc_stretch, im_label=label+'Model', im_name='rot_im_av_paper.eps', extent=extent)
         rot_model = nd.interpolation.rotate(im, pa_sky, reshape=False, order=1)
-        arcsinh_plot(rot_model, mcmc_stretch, im_label=label+'Model', im_name='rot_im_paper.eps', extent=extent)
+        arcsinh_plot(rot_model, mcmc_stretch, im_label=label+'Model', im_name='rot_im_paper.eps', \
+                     extent=extent_radec, x_ax_label='RA Offset (")', y_ax_label='Dec Offset (")')
         
     '''
     
