@@ -48,7 +48,7 @@ def ft_and_resample(cal_ims):
 
 def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_name='arcsinh_im.png', \
     scale_val=None, im_label=None, res=False, north=False, angle=0., x_ax_label = 'Offset (")',\
-    y_ax_label = 'Offset (")'), radec=False:
+    y_ax_label = 'Offset (")', radec=False):
     """A helper routine to make an arcsinh stretched image.
     
     Parameters
@@ -506,7 +506,7 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
                      x_ax_label='RA Offset (")', y_ax_label='Dec Offset (")', radec=True)
         arcsinh_plot(rot_resid_sum, stretch, im_label=label+'Residual, D - M', res=True, \
                      im_name = 'rot_resid_sum_paper.eps', extent=extent_radec, scale_val=np.max(tgt_sum),\
-                     x_ax_label='RA Offset (")', y_ax_label='Dec Offset (")'), radec=True  
+                     x_ax_label='RA Offset (")', y_ax_label='Dec Offset (")', radec=True)  
         plt.clf()
         plt.imshow(rot_ratio_sum, interpolation='nearest', extent=extent_radec, cmap=cm.PiYG, vmin=0., vmax=2.)
         plt.xticks(fontsize=18)
