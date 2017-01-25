@@ -213,7 +213,7 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
 def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi_txt='',plot_ims=True,
     preconvolve=True, pxscale=0.01, save_im_data=True, make_sed=True, paper_ims=True, label='',
     model_chi_dir = '/Users/eloisebirchall/Documents/Uni/Masters/radmc-3d/IRS_48_grid/MCMC_stuff/',
-    north_ims=False):
+    north_ims=False, rotate_present = False):
     """Rotate a model image, and find the best fit. Output (for now!) 
     goes to file in the current directory.
     
@@ -231,8 +231,24 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         Target images to fit to.
     model_chi_txt: string
         File name prefix for a saved model chi-squared.
-    mode_type: string
+    model_type: string
         A string to pre-pend to each line of the saved model chi-squared file.
+    plot_ims: Bool
+        do you want images plotted?
+    save_im_data: Bool
+        do you want pickles of the images
+    make_sed: bool
+        do you want an sed?
+    paper_ims: Bool
+        if true, better figures are made, so that they can be used in a paper
+    label: string
+        what label do you want on your image - this is passed from lnprob_radmc3d
+    north_ims: Bool
+        if true, plots some images with north arrow on them *** still needs work
+    rotate_present: Bool
+        if true makes images that are rotated to have north up and east left, and that could be
+        used in a paper.
+    
     Returns
     -------
     chi2:
