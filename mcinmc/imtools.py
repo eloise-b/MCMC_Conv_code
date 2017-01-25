@@ -124,7 +124,10 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
             fmt_string = "{0:5.2f}"
         cbar.ax.set_yticklabels([fmt_string.format(y) for y in stretch*np.sinh(ticks)])
         cbar.ax.tick_params(labelsize=18)
-        plt.text(-0.6,0.6,im_label,color='white',ha='left',va='top',fontsize=23)
+        if extent=extent_radec:
+            plt.text(0.6,0.6,im_label,color='white',ha='left',va='top',fontsize=23)
+        else:
+            plt.text(-0.6,0.6,im_label,color='white',ha='left',va='top',fontsize=23)
         plt.arrow(arrow_x1, arrow_y1, arrow_x2-arrow_x1, arrow_y2-arrow_y1, fc="red", ec="red")
         plt.savefig(im_name, bbox_inches='tight')
         plt.clf()   
@@ -151,7 +154,10 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
             fmt_string = "{0:5.2f}"
         cbar.ax.set_yticklabels([fmt_string.format(y) for y in stretch*np.sinh(ticks)])
         cbar.ax.tick_params(labelsize=18)
-        plt.text(-0.6,0.6,im_label,color='white',ha='left',va='top',fontsize=23)
+        if extent=extent_radec:
+            plt.text(0.6,0.6,im_label,color='white',ha='left',va='top',fontsize=23)
+        else:
+            plt.text(-0.6,0.6,im_label,color='white',ha='left',va='top',fontsize=23)
         plt.savefig(im_name, bbox_inches='tight')
         plt.clf()
     elif north:
