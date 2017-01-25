@@ -48,7 +48,7 @@ def ft_and_resample(cal_ims):
 
 def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_name='arcsinh_im.png', \
     scale_val=None, im_label=None, res=False, north=False, angle=0., x_ax_label = 'Offset (")',\
-    y_ax_label = 'Offset (")'):
+    y_ax_label = 'Offset (")'), radec=False:
     """A helper routine to make an arcsinh stretched image.
     
     Parameters
@@ -124,7 +124,7 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
             fmt_string = "{0:5.2f}"
         cbar.ax.set_yticklabels([fmt_string.format(y) for y in stretch*np.sinh(ticks)])
         cbar.ax.tick_params(labelsize=18)
-        if extent=extent_radec:
+        if radec:
             plt.text(0.6,0.6,im_label,color='white',ha='left',va='top',fontsize=23)
         else:
             plt.text(-0.6,0.6,im_label,color='white',ha='left',va='top',fontsize=23)
@@ -154,7 +154,7 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
             fmt_string = "{0:5.2f}"
         cbar.ax.set_yticklabels([fmt_string.format(y) for y in stretch*np.sinh(ticks)])
         cbar.ax.tick_params(labelsize=18)
-        if extent=extent_radec:
+        if radec:
             plt.text(0.6,0.6,im_label,color='white',ha='left',va='top',fontsize=23)
         else:
             plt.text(-0.6,0.6,im_label,color='white',ha='left',va='top',fontsize=23)
@@ -312,7 +312,8 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         arcsinh_plot(np.average(rotated_image, axis=0), mcmc_stretch, im_label=label+'Model', im_name='rot_im_av_paper.eps', extent=extent)
         rot_model = nd.interpolation.rotate(im, pa_sky, reshape=False, order=1)
         arcsinh_plot(rot_model, mcmc_stretch, im_label=label+'Model', im_name='rot_im_paper.eps', \
-                     extent=extent_radec, x_ax_label='RA Offset (")', y_ax_label='Dec Offset (")')
+                     extent=extent_radec, x_ax_label='RA Offset (")', y_ax_label='Dec Offset (")',\
+                     radec=True)
         
     '''
     
@@ -502,10 +503,10 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         
         arcsinh_plot(rot_conv_sum, stretch, asinh_vmin=0, im_label=label+'Conv Model', \
                      im_name='rot_conv_sum_paper.eps', extent=extent_radec, \
-                     x_ax_label='RA Offset (")', y_ax_label='Dec Offset (")')
+                     x_ax_label='RA Offset (")', y_ax_label='Dec Offset (")', radec=True)
         arcsinh_plot(rot_resid_sum, stretch, im_label=label+'Residual, D - M', res=True, \
                      im_name = 'rot_resid_sum_paper.eps', extent=extent_radec, scale_val=np.max(tgt_sum),\
-                     x_ax_label='RA Offset (")', y_ax_label='Dec Offset (")')  
+                     x_ax_label='RA Offset (")', y_ax_label='Dec Offset (")'), radec=True  
         plt.clf()
         plt.imshow(rot_ratio_sum, interpolation='nearest', extent=extent_radec, cmap=cm.PiYG, vmin=0., vmax=2.)
         plt.xticks(fontsize=18)
@@ -515,7 +516,7 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         cbar = plt.colorbar(pad=0.0)
         cbar.set_label('Model/Data',size=23)
         cbar.ax.tick_params(labelsize=18)
-        plt.text(-0.6,0.6,label+'Ratio',color='black',ha='left',va='top',fontsize=23)
+        plt.text(0.6,0.6,label+'Ratio',color='black',ha='left',va='top',fontsize=23)
         plt.savefig('rot_ratio_paper.eps', bbox_inches='tight')
         plt.clf()
         
