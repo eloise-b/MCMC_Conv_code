@@ -398,7 +398,7 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
                                                         sz//2 - xypeak_tgt[1], axis=1)
         tgt_shift = np.roll(np.roll(tgt_ims[n], sz//2 - xypeak_tgt[0], axis=0), sz//2 - xypeak_tgt[1], axis=1)
         tgt_rot_sum += nd.interpolation.rotate(tgt_shift, -pa_vert[n], reshape=False, order=1)
-        #for i in range(ntgt):
+        #Make shifted and rotated images
         model_shift = np.roll(np.roll(best_model_ims[n], sz//2 - xypeak_tgt[0], axis=0), 
                                            sz//2 - xypeak_tgt[1], axis=1)
         rot_best_model_ims[n] = nd.interpolation.rotate(model_shift, -pa_vert[n], reshape=False, order=1)
@@ -408,7 +408,7 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         ratio_shift = np.roll(np.roll(ratio_ims[n], sz//2 - xypeak_tgt[0], axis=0), 
                                            sz//2 - xypeak_tgt[1], axis=1)
         rot_ratios[n] = nd.interpolation.rotate(ratio_shift, -pa_vert[n], reshape=False, order=1)
-        #print("in rotate present for loop")
+        #make sums of the shifted and rotated images
         rot_conv_sum += rot_best_model_ims[n]
         rot_resid_sum += rot_residuals[n]
         rot_ratio_sum += rot_ratios[n]
