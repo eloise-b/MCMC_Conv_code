@@ -352,6 +352,12 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
     tgt_sum = np.zeros( (sz,sz) )
     model_sum = np.zeros( (sz,sz) )
     tgt_rot_sum = np.zeros( (sz,sz) )
+    rot_best_model_ims = np.empty( (ntgt,sz,sz) )
+    rot_residuals = np.empty( (ntgt,sz,sz) )
+    rot_ratios = np.empty( (ntgt,sz,sz) )
+    rot_conv_sum = np.zeros( (sz,sz) )
+    rot_resid_sum = np.zeros( (sz,sz) )
+    rot_ratio_sum = np.zeros( (sz,sz) )
     for n in range(ntgt):
         ims_shifted = np.empty( (ncal,sz,sz) )
         #Find the peak for the target
@@ -392,6 +398,20 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
                                                         sz//2 - xypeak_tgt[1], axis=1)
         tgt_shift = np.roll(np.roll(tgt_ims[n], sz//2 - xypeak_tgt[0], axis=0), sz//2 - xypeak_tgt[1], axis=1)
         tgt_rot_sum += nd.interpolation.rotate(tgt_shift, -pa_vert[n], reshape=False, order=1)
+        #for i in range(ntgt):
+        model_shift = np.roll(np.roll(best_model_ims[n], sz//2 - xypeak_tgt[0], axis=0), 
+                                           sz//2 - xypeak_tgt[1], axis=1)
+        rot_best_model_ims[n] = nd.interpolation.rotate(model_shift, -pa_vert[n], reshape=False, order=1)
+        residual_shift = np.roll(np.roll(residual_ims[n], sz//2 - xypeak_tgt[0], axis=0), 
+                                           sz//2 - xypeak_tgt[1], axis=1)
+        rot_residuals[n] = nd.interpolation.rotate(residual_shift, -pa_vert[n], reshape=False, order=1)
+        ratio_shift = np.roll(np.roll(ratio_ims[n], sz//2 - xypeak_tgt[0], axis=0), 
+                                           sz//2 - xypeak_tgt[1], axis=1)
+        rot_ratios[n] = nd.interpolation.rotate(ratio_shift, -pa_vert[n], reshape=False, order=1)
+        #print("in rotate present for loop")
+        rot_conv_sum += rot_best_model_ims[n]
+        rot_resid_sum += rot_residuals[n]
+        rot_ratio_sum += rot_ratios[n]
         
         if plot_ims:
             #plot the stretched version of the best model image
@@ -465,27 +485,27 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
             arcsinh_plot(tgt_ims[i]-best_model_ims[i], stretch, north=True, angle=angle, res=True, im_name = north_name, extent=extent, scale_val=np.max(tgt_ims[i]))
         
     if rotate_present:
-        rot_best_model_ims = np.empty( (ntgt,sz,sz) )
-        rot_residuals = np.empty( (ntgt,sz,sz) )
-        rot_ratios = np.empty( (ntgt,sz,sz) )
-        rot_conv_sum = np.zeros( (sz,sz) )
-        rot_resid_sum = np.zeros( (sz,sz) )
-        rot_ratio_sum = np.zeros( (sz,sz) )
+#         rot_best_model_ims = np.empty( (ntgt,sz,sz) )
+#         rot_residuals = np.empty( (ntgt,sz,sz) )
+#         rot_ratios = np.empty( (ntgt,sz,sz) )
+#         rot_conv_sum = np.zeros( (sz,sz) )
+#         rot_resid_sum = np.zeros( (sz,sz) )
+#         rot_ratio_sum = np.zeros( (sz,sz) )
         #print("in rotate present")
-        for i in range(ntgt):
-            model_shift = np.roll(np.roll(best_model_ims[i], sz//2 - xypeak_tgt[0], axis=0), 
-                                               sz//2 - xypeak_tgt[1], axis=1)
-            rot_best_model_ims[i] = nd.interpolation.rotate(model_shift, -pa_vert[i], reshape=False, order=1)
-            residual_shift = np.roll(np.roll(residual_ims[i], sz//2 - xypeak_tgt[0], axis=0), 
-                                               sz//2 - xypeak_tgt[1], axis=1)
-            rot_residuals[i] = nd.interpolation.rotate(residual_shift, -pa_vert[i], reshape=False, order=1)
-            ratio_shift = np.roll(np.roll(ratio_ims[i], sz//2 - xypeak_tgt[0], axis=0), 
-                                               sz//2 - xypeak_tgt[1], axis=1)
-            rot_ratios[i] = nd.interpolation.rotate(ratio_shift, -pa_vert[i], reshape=False, order=1)
-            #print("in rotate present for loop")
-            rot_conv_sum += rot_best_model_ims[i]
-            rot_resid_sum += rot_residuals[i]
-            rot_ratio_sum += rot_ratios[i]
+#         for i in range(ntgt):
+#             model_shift = np.roll(np.roll(best_model_ims[i], sz//2 - xypeak_tgt[0], axis=0), 
+#                                                sz//2 - xypeak_tgt[1], axis=1)
+#             rot_best_model_ims[i] = nd.interpolation.rotate(model_shift, -pa_vert[i], reshape=False, order=1)
+#             residual_shift = np.roll(np.roll(residual_ims[i], sz//2 - xypeak_tgt[0], axis=0), 
+#                                                sz//2 - xypeak_tgt[1], axis=1)
+#             rot_residuals[i] = nd.interpolation.rotate(residual_shift, -pa_vert[i], reshape=False, order=1)
+#             ratio_shift = np.roll(np.roll(ratio_ims[i], sz//2 - xypeak_tgt[0], axis=0), 
+#                                                sz//2 - xypeak_tgt[1], axis=1)
+#             rot_ratios[i] = nd.interpolation.rotate(ratio_shift, -pa_vert[i], reshape=False, order=1)
+#             #print("in rotate present for loop")
+#             rot_conv_sum += rot_best_model_ims[i]
+#             rot_resid_sum += rot_residuals[i]
+#             rot_ratio_sum += rot_ratios[i]
         
         res_file = open('rot_res_ims.pkl','w')
         pickle.dump(rot_residuals,res_file)
