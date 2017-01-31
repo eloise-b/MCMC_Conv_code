@@ -332,7 +332,7 @@ def lnprob(args):
     
 '''
 
-def lnprior(x):
+def lnprior(x, out_wall):
     params = {'dtog':np.exp(x[0]),'gap_depletion1':np.exp(x[1]),'gap_depletion2':np.exp(x[2]),\
             'r_dust':np.exp(x[3]),'r_in':np.exp(x[4]),'r_wall':np.exp(x[5]),'inc':x[6],\
             'pa_sky':x[7],'star_x':x[8],'star_y':x[9],'planet_x':x[10], 'planet_y':x[11],\
@@ -350,7 +350,7 @@ def lnprob(x, temperature=10000.0, filename='IRS48_ims.fits',nphot="long(4e4)",\
     make_sed=False,rel_flux = 8.672500426996962, out_wall = 60., out_dep = 1e-1, paper_ims=True,
     label='',north_ims=False, rotate_present = False):
     #planet_temp=1500.0, dist=120.0, pxsize=0.01, wav_in_um=3.776, mdisk=0.0001, r_dust=0.3,\
-    lp = lnprior(x)
+    lp = lnprior(x, out_wall)
     if not np.isfinite(lp):
         return -np.inf
     return lp + lnprob_conv_disk_radmc3d(x, temperature=temperature, filename=filename,\
