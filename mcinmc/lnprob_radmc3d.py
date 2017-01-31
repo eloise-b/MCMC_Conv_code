@@ -41,7 +41,7 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     nphot_scat="long(2e4)", remove_directory=True, star_r=2.0, star_m=2.0, planet_mass=0.001,\
     planet_temp=1500.0, dist=120.0, pxsize=0.01, wav_in_um=3.776, mdisk=0.0001,\
     star_temp=9000.0, kappa = "['carbon']", Kurucz= True, plot_ims=False, save_im_data=False, \
-    make_sed=False, rel_flux = 8.672500426996962, out_wall = 60., out_dep = 1e-1, paper_ims=True,
+    make_sed=False, rel_flux = 8.672500426996962, out_wall = 60., out_dep = 1e-1, paper_ims=False,
     label='', north_ims=False, rotate_present = False):
 #def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',nphot="long(4e4)",\
 #    nphot_scat="long(2e4)", remove_directory=True, star_r=2.0, star_m=2.0, planet_mass=0.001,\
@@ -347,7 +347,7 @@ def lnprob(x, temperature=10000.0, filename='IRS48_ims.fits',nphot="long(4e4)",\
     nphot_scat="long(2e4)", remove_directory=True, star_r=2.0, star_m=2.0, planet_mass=0.001,\
     planet_temp=1500.0, dist=120.0, pxsize=0.01, wav_in_um=3.776, mdisk=0.0001,\
     star_temp=9000.0, kappa = "['carbon']", Kurucz= True, plot_ims=False, save_im_data=False, \
-    make_sed=False,rel_flux = 8.672500426996962, out_wall = 60., out_dep = 1e-1, paper_ims=True,
+    make_sed=False,rel_flux = 8.672500426996962, out_wall = 60., out_dep = 1e-1, paper_ims=False,
     label='',north_ims=False, rotate_present = False):
     #planet_temp=1500.0, dist=120.0, pxsize=0.01, wav_in_um=3.776, mdisk=0.0001, r_dust=0.3,\
     lp = lnprior(x, out_wall)
