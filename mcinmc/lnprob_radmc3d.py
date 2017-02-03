@@ -41,8 +41,8 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     nphot_scat="long(2e4)", remove_directory=True, star_r=2.0, star_m=2.0, planet_mass=0.001,\
     planet_temp=1500.0, dist=120.0, pxsize=0.01, wav_in_um=3.776, mdisk=0.0001,\
     star_temp=9000.0, kappa = "['carbon']", Kurucz= True, plot_ims=False, save_im_data=False, \
-    make_sed=False, rel_flux = 8.672500426996962, out_wall = 60., out_dep = 1e-1, paper_ims=False,
-    label='', north_ims=False, rotate_present = False):
+    make_sed=False, data_sed_ratio = 8.672500426996962, sed_ratio_uncert=0.01, out_wall = 60., \
+    out_dep = 1e-1, paper_ims=False, label='', north_ims=False, rotate_present = False):
 #def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',nphot="long(4e4)",\
 #    nphot_scat="long(2e4)", remove_directory=True, star_r=2.0, star_m=2.0, planet_mass=0.001,\
 #    planet_temp=1500.0, dist=120.0, pxsize=0.01, wav_in_um=3.776, mdisk=0.0001, r_dust=0.3,\
@@ -261,7 +261,7 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     intensity = np.sum(im)
     
     #compare the star and the star+disc -> This is the SED Parameter
-    rel_intens = intensity/star_sum
+    model_sed_ratio = intensity/star_sum
     
     #Inclination angle, detailed disk properties can only come from RADMC-3D
     #Pa to add to the model image PA. Note that this is instrument (not sky) PA.
@@ -294,7 +294,7 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
         print("*** Figures saved in " + pid_str + " ***")
     
     #Return log likelihood
-    lnlike = -1*(0.5*chi_tot/temperature +((np.log10(rel_flux)-np.log10(rel_intens))**2/(2*0.01**2)))
+    lnlike = -1*(0.5*chi_tot/temperature +((np.log10(data_sed_ratio)-np.log10(model_sed_ratio))**2/(2*sed_ratio_uncert**2)))
     print("*** Computed likelihood {0:7.1f} for thread {1:s} ***".format(lnlike,pid_str))
 
     c = open('chain'+pid_str+'.txt','a')
@@ -347,8 +347,8 @@ def lnprob(x, temperature=10000.0, filename='IRS48_ims.fits',nphot="long(4e4)",\
     nphot_scat="long(2e4)", remove_directory=True, star_r=2.0, star_m=2.0, planet_mass=0.001,\
     planet_temp=1500.0, dist=120.0, pxsize=0.01, wav_in_um=3.776, mdisk=0.0001,\
     star_temp=9000.0, kappa = "['carbon']", Kurucz= True, plot_ims=False, save_im_data=False, \
-    make_sed=False,rel_flux = 8.672500426996962, out_wall = 60., out_dep = 1e-1, paper_ims=False,
-    label='',north_ims=False, rotate_present = False):
+    make_sed=False, data_sed_ratio = 8.672500426996962, sed_ratio_uncert=0.01, out_wall = 60.,\
+    out_dep = 1e-1, paper_ims=False, label='',north_ims=False, rotate_present = False):
     #planet_temp=1500.0, dist=120.0, pxsize=0.01, wav_in_um=3.776, mdisk=0.0001, r_dust=0.3,\
     lp = lnprior(x, out_wall)
     if not np.isfinite(lp):
@@ -358,8 +358,8 @@ def lnprob(x, temperature=10000.0, filename='IRS48_ims.fits',nphot="long(4e4)",\
     star_m=star_m, planet_mass=planet_mass, planet_temp=planet_temp, dist=dist, \
     pxsize=pxsize, wav_in_um=wav_in_um, mdisk=mdisk, star_temp=star_temp, \
     kappa = kappa, Kurucz= Kurucz, plot_ims=plot_ims, save_im_data=save_im_data, make_sed=make_sed,\
-    rel_flux=rel_flux, out_wall=out_wall, out_dep=out_dep, paper_ims=paper_ims, label=label,\
-    north_ims=north_ims, rotate_present=rotate_present)
+    data_sed_ratio=data_sed_ratio, sed_ratio_uncert=sed_ratio_uncert, out_wall=out_wall, \
+    out_dep=out_dep, paper_ims=paper_ims, label=label, north_ims=north_ims, rotate_present=rotate_present)
     #pxsize=pxsize, wav_in_um=wav_in_um, mdisk=mdisk, r_dust=r_dust, star_temp=star_temp, \
     #return lp + lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='IRS48_ims.fits',nphot="long(4e4)",\
     #nphot_scat="long(2e4)", remove_directory=True, star_r=2.0, star_m=2.0, planet_mass=0.001,\
