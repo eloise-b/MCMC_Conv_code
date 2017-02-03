@@ -401,13 +401,13 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         #Make shifted and rotated images
         model_shift = np.roll(np.roll(best_model_ims[n], sz//2 - xypeak_tgt[0], axis=0), 
                                            sz//2 - xypeak_tgt[1], axis=1)
-        rot_best_model_ims[n] = nd.interpolation.rotate(model_shift, -pa_vert[n], reshape=False, order=1)
+        rot_best_model_ims[n] = nd.interpolation.rotate(model_shift, pa_vert[n], reshape=False, order=1)
         residual_shift = np.roll(np.roll(residual_ims[n], sz//2 - xypeak_tgt[0], axis=0), 
                                            sz//2 - xypeak_tgt[1], axis=1)
-        rot_residuals[n] = nd.interpolation.rotate(residual_shift, -pa_vert[n], reshape=False, order=1)
+        rot_residuals[n] = nd.interpolation.rotate(residual_shift, pa_vert[n], reshape=False, order=1)
         ratio_shift = np.roll(np.roll(ratio_ims[n], sz//2 - xypeak_tgt[0], axis=0), 
                                            sz//2 - xypeak_tgt[1], axis=1)
-        rot_ratios[n] = nd.interpolation.rotate(ratio_shift, -pa_vert[n], reshape=False, order=1)
+        rot_ratios[n] = nd.interpolation.rotate(ratio_shift, pa_vert[n], reshape=False, order=1)
         #make sums of the shifted and rotated images
         rot_conv_sum += rot_best_model_ims[n]
         rot_resid_sum += rot_residuals[n]
@@ -480,9 +480,9 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         for i in range(ntgt):
             angle = pa_vert[i]*(np.pi/180)
             north_name = 'target_north_'+str(i)+'.eps'
-            arcsinh_plot(tgt_ims[i], stretch, asinh_vmin=0, north=True, angle=angle, im_name=north_name, extent=extent)
+            arcsinh_plot(tgt_ims[i], stretch, asinh_vmin=0, north=True, angle=-angle, im_name=north_name, extent=extent)
             north_name = 'resid_north_'+str(i)+'.eps'
-            arcsinh_plot(tgt_ims[i]-best_model_ims[i], stretch, north=True, angle=angle, res=True, im_name = north_name, extent=extent, scale_val=np.max(tgt_ims[i]))
+            arcsinh_plot(tgt_ims[i]-best_model_ims[i], stretch, north=True, angle=-angle, res=True, im_name = north_name, extent=extent, scale_val=np.max(tgt_ims[i]))
         
     if rotate_present:
 #         rot_best_model_ims = np.empty( (ntgt,sz,sz) )
