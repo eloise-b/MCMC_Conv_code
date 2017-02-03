@@ -273,7 +273,7 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
                  + str(params['r_wall']) + ',' + str(params['inc']) + ',' + str(params['pa_sky'])\
                  + ',' + str(params['star_x']) + ',' + str(params['star_y']) + ',' + \
                  str(params['planet_x']) + ',' + str(params['planet_y']) + ',' + str(params['planet_r'])\
-                 + ',' + str(rel_intens)
+                 + ',' + str(model_sed_ratio)
     
     model_chi_txt=''
     
