@@ -354,6 +354,7 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
     tgt_sum = np.zeros( (sz,sz) )
     model_sum = np.zeros( (sz,sz) )
     tgt_rot_sum = np.zeros( (sz,sz) )
+    tgt_match_rot_sum = np.zeros( (sz,sz) )
     rot_best_model_ims = np.empty( (ntgt,sz,sz) )
     rot_residuals = np.empty( (ntgt,sz,sz) )
     rot_ratios = np.empty( (ntgt,sz,sz) )
