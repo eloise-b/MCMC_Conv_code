@@ -397,7 +397,7 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         model_sum += np.roll(np.roll(best_model_ims[n], sz//2 - xypeak_tgt[0], axis=0), 
                                                         sz//2 - xypeak_tgt[1], axis=1)
         tgt_shift = np.roll(np.roll(tgt_ims[n], sz//2 - xypeak_tgt[0], axis=0), sz//2 - xypeak_tgt[1], axis=1)
-        tgt_rot_sum += nd.interpolation.rotate(tgt_shift, -pa_vert[n], reshape=False, order=1)
+        tgt_rot_sum += nd.interpolation.rotate(tgt_shift, pa_vert[n], reshape=False, order=1)
         #Make shifted and rotated images
         model_shift = np.roll(np.roll(best_model_ims[n], sz//2 - xypeak_tgt[0], axis=0), 
                                            sz//2 - xypeak_tgt[1], axis=1)
@@ -475,6 +475,7 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         plt.savefig('ratio_paper_2.eps', bbox_inches='tight')
         plt.clf()
     
+    
     if north_ims:
         #images with arrows on them:
         for i in range(ntgt):
@@ -545,6 +546,10 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         plt.text(0.6,0.6,label+'Ratio',color='black',ha='left',va='top',fontsize=23)
         plt.savefig('rot_ratio_paper.eps', bbox_inches='tight')
         plt.clf()
+        
+        #ratio_of_sums = model_sum/tgt_sum
+        #rot_ratio_of_sums = nd.interpolation.rotate(residual_shift, pa_vert[n], reshape=False, order=1)
+        
         
     #Save the final image data as a pickle, so that it can be read by another code to make
     #images for a paper later
