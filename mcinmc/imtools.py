@@ -201,9 +201,11 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
         ticks = np.linspace(vmin,vmax,6)
         cbar = plt.colorbar(ticks=ticks, pad=0.0)
         if res:
-            cbar.set_label('I/I(data)'+r'$_{max}$',size=23)
+            #cbar.set_label('I/I(data)'+r'$_{max}$',size=23)
+            cbar.set_label('I/max(I(data))',size=23)
         else:
-            cbar.set_label('I/I'+r'$_{max}$',size=23)
+            #cbar.set_label('I/I'+r'$_{max}$',size=23)
+            cbar.set_label('I/max(I)',size=23)
         #Note that the following line doesn't work in interactive mode.
         if stretch <= 0.001:
             fmt_string = "{0:5.3f}"
@@ -398,6 +400,7 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
                                                         sz//2 - xypeak_tgt[1], axis=1)
         tgt_shift = np.roll(np.roll(tgt_ims[n], sz//2 - xypeak_tgt[0], axis=0), sz//2 - xypeak_tgt[1], axis=1)
         tgt_rot_sum += nd.interpolation.rotate(tgt_shift, pa_vert[n], reshape=False, order=1)
+        tgt_match_rot_sum += nd.interpolation.rotate(tgt_shift, pa_vert[n]-pa_vert[0], reshape=False, order=1)
         #Make shifted and rotated images
         model_shift = np.roll(np.roll(best_model_ims[n], sz//2 - xypeak_tgt[0], axis=0), 
                                            sz//2 - xypeak_tgt[1], axis=1)
@@ -446,6 +449,7 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
     if paper_ims:
         arcsinh_plot(tgt_sum, stretch, asinh_vmin=0, im_label='Data', im_name='target_sum_paper_labelled.eps', extent=extent)
         arcsinh_plot(tgt_sum, stretch, asinh_vmin=0, im_name='target_sum_paper.eps', extent=extent)
+        arcsinh_plot(tgt_match_rot_sum, stretch, asinh_vmin=0, im_name='target_match_rot_sum_paper.eps', extent=extent)
         arcsinh_plot(tgt_rot_sum, stretch, asinh_vmin=0, im_name='target_rot_sum_paper.eps', extent=extent)
         arcsinh_plot(model_sum, stretch, asinh_vmin=0, im_label=label+'Conv Model', im_name='model_sum_paper.eps', extent=extent)
         arcsinh_plot(tgt_sum-model_sum, stretch, im_label=label+'Residual, D - M', res=True, im_name = 'resid_sum_paper.eps', extent=extent, scale_val=np.max(tgt_sum))
@@ -484,6 +488,7 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
             arcsinh_plot(tgt_ims[i], stretch, asinh_vmin=0, north=True, angle=-angle, im_name=north_name, extent=extent)
             north_name = 'resid_north_'+str(i)+'.eps'
             arcsinh_plot(tgt_ims[i]-best_model_ims[i], stretch, north=True, angle=-angle, res=True, im_name = north_name, extent=extent, scale_val=np.max(tgt_ims[i]))
+        arcsinh_plot(tgt_match_rot_sum, stretch, asinh_vmin=0, im_name='target_match_rot_sum_paper_north.eps', extent=extent, north=True, angle=-(pa_vert[0]*(np.pi/180)))
         
     if rotate_present:
 #         rot_best_model_ims = np.empty( (ntgt,sz,sz) )
