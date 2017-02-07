@@ -98,10 +98,14 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
     
     if north and im_label:
         #angle = pa_vert[8]*(np.pi/180)
-        arrow_x1 = -0.2*np.sin(angle)
-        arrow_y2 = 0.4*np.cos(angle)
-        arrow_y1 = 0.2*np.cos(angle)
-        arrow_x2 = -0.4*np.sin(angle)
+        arrow_x1 = -0.4*np.sin(angle)
+        arrow_y2 = 0.55*np.cos(angle)
+        arrow_y1 = 0.4*np.cos(angle)
+        arrow_x2 = -0.55*np.sin(angle)
+        #e_arrow_x1 = -0.4*np.sin(angle+(np.pi/2.))
+        e_arrow_y2 = 0.55*np.cos(angle+(np.pi/2.))
+        #e_arrow_y1 = 0.4*np.cos(angle+(np.pi/2.))
+        e_arrow_x2 = -0.55*np.sin(angle+(np.pi/2.))
         plt.clf()
         plt.imshow(stretched_im, interpolation='nearest',cmap=cm.cubehelix, extent=extent, vmin=vmin, vmax=vmax)
         plt.xticks(fontsize=18)
@@ -129,6 +133,9 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
         else:
             plt.text(-0.6,0.6,im_label,color='white',ha='left',va='top',fontsize=23)
         plt.arrow(arrow_x1, arrow_y1, arrow_x2-arrow_x1, arrow_y2-arrow_y1, fc="red", ec="red")
+        plt.arrow(arrow_x1, arrow_y1, e_arrow_x2-arrow_x1, e_arrow_y2-arrow_y1, fc="red", ec="red")
+        plt.text(arrow_x2-arrow_x1, arrow_y2-arrow_y1,'N',color='red',ha='right',va='bottom',fontsize=23)
+        plt.text(e_arrow_x2-arrow_x1, e_arrow_y2-arrow_y1,'E',color='red',ha='right',va='bottom',fontsize=23)
         plt.savefig(im_name, bbox_inches='tight')
         plt.clf()   
     elif im_label:
