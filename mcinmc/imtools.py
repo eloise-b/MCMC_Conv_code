@@ -454,7 +454,7 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         arcsinh_plot(tgt_rot_sum, stretch, asinh_vmin=0, im_name='target_rot_sum_paper.eps', extent=extent)
         arcsinh_plot(model_sum, stretch, asinh_vmin=0, im_label=label+'Conv Model', im_name='model_sum_paper.eps', extent=extent)
         arcsinh_plot(tgt_sum-model_sum, stretch, im_label=label+'Residual, D - M', res=True, im_name = 'resid_sum_paper.eps', extent=extent, scale_val=np.max(tgt_sum))
-        arcsinh_plot(tgt_rot_sum-rot_conv_sum, stretch, im_label=label+'Residual, D - M', res=True, im_name = 'resid_sum_paper_rot_first.eps', extent=extent, scale_val=np.max(tgt_sum))
+        arcsinh_plot(tgt_rot_sum-rot_conv_sum, stretch, im_label=label+'Residual, D - M', res=True, im_name = 'resid_sum_paper_rot_first.eps', extent=extent_radec, scale_val=np.max(tgt_sum), x_ax_label='RA Offset (")', y_ax_label='Dec Offset (")', radec=True  )
         #plot a model image only rotated by the pa
         
         #arcsinh_plot(tgt_sum/model_sum, stretch, im_label=label+'Ratio, Target/Model', im_name = 'ratio_paper.eps', extent=extent)#, scale_val=np.max(tgt_sum))        
@@ -482,9 +482,9 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         plt.clf()
         plt.imshow(rot_conv_sum/tgt_rot_sum, interpolation='nearest', extent=extent, cmap=cm.PiYG, vmin=0., vmax=2.)
         plt.xticks(fontsize=18)
-        plt.yticks(fontsize=18)        
-        plt.xlabel('Offset (")',fontsize=23)
-        plt.ylabel('Offset (")',fontsize=23)
+        plt.yticks(fontsize=18)      
+        plt.xlabel('RA Offset (")',fontsize=23)
+        plt.ylabel('Dec Offset (")',fontsize=23)
         cbar = plt.colorbar(pad=0.0)
         cbar.set_label('Model/Data',size=23)
         cbar.ax.tick_params(labelsize=18)
