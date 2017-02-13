@@ -202,7 +202,7 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
         plt.arrow(arrow_x1, arrow_y1, arrow_x2-arrow_x1, arrow_y2-arrow_y1, fc="red", ec="red")
         #plt.arrow(arrow_x1, arrow_y1, e_arrow_x2-arrow_x1, e_arrow_y2-arrow_y1, fc="red", ec="red")
         plt.text(arrow_x2-arrow_x1, arrow_y2-arrow_y1,'N',color='red',ha='right',va='bottom',fontsize=23)
-        p#lt.text(e_arrow_x2-arrow_x1, e_arrow_y2-arrow_y1,'E',color='red',ha='right',va='bottom',fontsize=23)
+        #plt.text(e_arrow_x2-arrow_x1, e_arrow_y2-arrow_y1,'E',color='red',ha='right',va='bottom',fontsize=23)
         plt.savefig(im_name, bbox_inches='tight')
         plt.clf()
     else:    
