@@ -207,10 +207,10 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     #    params['r_in'] = r_wall
     
     #Convert parameters to RadMC3D strings
-    r_in = '{0:7.3f}*au'.format(params['r_dust'])
-    gapin  = '[0.0*au, {0:7.3f}*au, {1:7.3f}*au]'.format(params['r_in'],params['r_wall'])
-    gapout = '[{0:7.3f}*au, {1:7.3f}*au, {2:7.3f}*au]'.format(params['r_in'],params['r_wall'],out_wall)
-    gap_depletion = '[{0:10.3e}, {1:10.3e}, {2:10.3e}]'.format(params['gap_depletion1'],params['gap_depletion2'],out_dep)
+    r_in = '{0:7.9f}*au'.format(params['r_dust'])
+    gapin  = '[0.0*au, {0:7.9f}*au, {1:7.9f}*au]'.format(params['r_in'],params['r_wall'])
+    gapout = '[{0:7.9f}*au, {1:7.9f}*au, {2:7.9f}*au]'.format(params['r_in'],params['r_wall'],out_wall)
+    gap_depletion = '[{0:10.9e}, {1:10.9e}, {2:10.9e}]'.format(params['gap_depletion1'],params['gap_depletion2'],out_dep)
     dusttogas_str = "{0:8.6f}".format(params['dtog'])
     mdisk_str = '[{0:9.7f}*ms]'.format(mdisk)
     #dodgy fix - need priors instead
@@ -339,7 +339,8 @@ def lnprior(x, out_wall):
             'planet_r':x[12]}
     if params['r_in'] < params['r_wall'] and params['r_wall'] < out_wall and \
        params['r_wall'] > params['r_in']+0.1 and params['r_dust'] < params['r_in'] and \
-       params['r_dust'] > 0.1 and params['dtog'] < 5000. and params['r_dust'] != params['r_in']:
+       params['r_dust'] > 0.1 and params['dtog'] < 5000. and params['r_dust']) != params['r_in']:
+       #np.round(params['r_dust'],3) != np.round(params['r_in'],3):
         return 0.0
     return -np.inf
    
