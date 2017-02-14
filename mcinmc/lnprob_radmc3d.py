@@ -339,7 +339,7 @@ def lnprior(x, out_wall):
             'planet_r':x[12]}
     if params['r_in'] < params['r_wall'] and params['r_wall'] < out_wall and \
        params['r_wall'] > params['r_in']+0.1 and params['r_dust'] < params['r_in'] and \
-       params['r_dust'] > 0.1 and params['dtog'] < 5000. and params['r_dust']) != params['r_in']:
+       params['r_dust'] > 0.1 and params['dtog'] < 5000. and params['r_dust'] != params['r_in']:
        #np.round(params['r_dust'],3) != np.round(params['r_in'],3):
         return 0.0
     return -np.inf
