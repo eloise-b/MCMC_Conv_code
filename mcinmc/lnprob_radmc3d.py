@@ -337,9 +337,13 @@ def lnprior(x, out_wall):
             'r_dust':np.exp(x[3]),'r_in':np.exp(x[4]),'r_wall':np.exp(x[5]),'inc':x[6],\
             'pa_sky':x[7],'star_x':x[8],'star_y':x[9],'planet_x':x[10], 'planet_y':x[11],\
             'planet_r':x[12]}
-    if params['r_in'] < params['r_wall'] and params['r_wall'] < out_wall and \
-       params['r_wall'] > params['r_in']+0.1 and params['r_dust'] < params['r_in'] and \
-       params['r_dust'] > 0.1 and params['dtog'] < 5000. and params['r_dust'] != params['r_in']:
+    amr_safe_frac = 1.2
+    if params['r_in']   > amr_safe_frac*params['r_dust'] and \
+       params['r_wall'] > amr_safe_frac*params['r_in'] and \
+       out_wall > amr_safe_frac*params['r_wall'] and \  
+#        params['r_in'] < params['r_wall'] and params['r_wall'] < out_wall and \
+#       params['r_wall'] > params['r_in']+0.1 and params['r_dust'] < params['r_in'] and \
+       params['r_dust'] > 0.1 and params['dtog'] < 5000.:
        #np.round(params['r_dust'],3) != np.round(params['r_in'],3):
         return 0.0
     return -np.inf
