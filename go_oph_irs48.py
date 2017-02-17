@@ -86,7 +86,7 @@ elif mode=='mcmc':
         c.close()
         p0 = old_chain[:,-1,:]
     else:
-    p0 = [ipar + np.random.normal(size=ndim)*ipar_sig for i in range(nwalkers)]
+        p0 = [ipar + np.random.normal(size=ndim)*ipar_sig for i in range(nwalkers)]
     
     if (multiprocess):
         threads = multiprocessing.cpu_count()
