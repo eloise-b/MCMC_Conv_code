@@ -81,10 +81,10 @@ elif mode=='mcmc':
     #Could use parameters of random.normal instead of below, if you prefer that.
     
     if follow:
-    c = open('chainfile.pkl','r')
-    old_prob,old_chain = pickle.load(c)
-    c.close()
-    p0 = old_chain[:,-1,:]
+        c = open('chainfile.pkl','r')
+        old_prob,old_chain = pickle.load(c)
+        c.close()
+        p0 = old_chain[:,-1,:]
     else:
     p0 = [ipar + np.random.normal(size=ndim)*ipar_sig for i in range(nwalkers)]
     
