@@ -8,6 +8,10 @@ import pdb
 import radmc3dPy as r3
 
 multiprocess=True
+follow=True
+#if follow is true you need to copy in the chainfile.pkl from the run that you want to 
+#follow on from
+
 
 #nwalkers is set to be twice the number of parameters - should make this automatic
 nwalkers = 26
@@ -63,7 +67,7 @@ mode='mcmc'
 #mode='plot'
 kwargs = {"planet_temp":2000,"temperature":10000,"filename":"HD169142_2014_ims.fits","dist":145,\
           "rel_flux":6.973494765305826, "star_r":1.6, "star_m":1.65, "mdisk":1.e-3, "star_temp":8250,\
-          "kappa":"['56e-3_pah']","Kurucz":True,"out_wall":70., "out_dep":1e-1}
+          "kappa":"['56e-3_pah']","Kurucz":True,"out_wall":70., "out_dep":1e-1, "sed_ratio_uncert":0.001}
 
 #A test code block to see the effect of changing one parameter at a time.
 if mode=='test':
@@ -86,8 +90,14 @@ elif mode=='mcmc':
     ipar_sig = np.array([.1,.1,.1,.1,.1,.1,1,5,0.0,0.0,0.,0.,0.0])
     ndim = len(ipar)
     #Could use parameters of random.normal instead of below, if you prefer that.
+    if follow:
+    c = open('chainfile.pkl','r')
+    old_prob,old_chain = pickle.load(c)
+    c.close()
+    p0 = old_chain[:,-1,:]
+    else:
     p0 = [ipar + np.random.normal(size=ndim)*ipar_sig for i in range(nwalkers)]
-
+    
     if (multiprocess):
         threads = multiprocessing.cpu_count()
         sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, threads=threads, kwargs=kwargs)

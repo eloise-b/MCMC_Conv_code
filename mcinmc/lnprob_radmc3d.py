@@ -340,10 +340,12 @@ def lnprior(x, out_wall):
     amr_safe_frac = 1.2
     if params['r_in']   > amr_safe_frac*params['r_dust'] and \
        params['r_wall'] > amr_safe_frac*params['r_in'] and \
-       out_wall > amr_safe_frac*params['r_wall'] and \  
-#        params['r_in'] < params['r_wall'] and params['r_wall'] < out_wall and \
-#       params['r_wall'] > params['r_in']+0.1 and params['r_dust'] < params['r_in'] and \
-       params['r_dust'] > 0.1 and params['dtog'] < 5000.:
+       out_wall         > amr_safe_frac*params['r_wall'] and \
+       params['r_dust'] > 0.1 and \
+       params['dtog']   < 5000.:
+#        params['r_in'] < params['r_wall'] and params['r_wall'] < out_wall and 
+#       params['r_wall'] > params['r_in']+0.1 and params['r_dust'] < params['r_in'] and 
+       
        #np.round(params['r_dust'],3) != np.round(params['r_in'],3):
         return 0.0
     return -np.inf
@@ -386,8 +388,26 @@ if __name__ == "__main__":
     p0 = [ipar + np.random.normal(size=ndim)*ipar_sig for i in range(nwalkers)]
     sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_conv_disk_radmc3d,threads=threads)
     sampler.run_mcmc(p0,5)
-    
-    
+    '''
+    c = open('chainfile.pkl','r')
+    old_prob,old_chain = pickle.load(c)
+    c.close()
+    #define starting point as the last model of the last thread from the previous mcmc
+    ipar = old_chain[-1,-1]
+    #make the starting cloud smaller
+    ipar_sig = np.array([.01,.03,.01,.001,.001,0.1,0.1])
+    ndim = len(ipar)
+    #Could use parameters of random.normal instead of below. But Mike likes this way.
+    p0 = [ipar + np.random.normal(size=ndim)*ipar_sig for i in range(nwalkers)]
+    p0 = old_chain
+    #sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_conv_disk_radmc3d,pool=pool)
+    #sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_conv_disk_radmc3d,threads=threads, args=[old_chain, old_prob])
+    sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_conv_disk_radmc3d,threads=threads)
+    #sampler.lnprobability = old_prob
+    #sampler.chain = old_chain
+    #sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob_conv_disk_radmc3d, args=[temperature=170.0])
+    sampler.run_mcmc(p0,20)
+    '''
     chainfile = open('chainfile.pkl','w')
     pickle.dump((sampler.lnprobability,sampler.chain),chainfile)
     chainfile.close()
