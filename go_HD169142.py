@@ -66,7 +66,7 @@ ipar = np.array([np.log(5.10e-4), #Dust to gas
 mode='mcmc'
 #mode='plot'
 kwargs = {"planet_temp":2000,"temperature":10000,"filename":"HD169142_2014_ims.fits","dist":145,\
-          "rel_flux":6.973494765305826, "star_r":1.6, "star_m":1.65, "mdisk":1.e-3, "star_temp":8250,\
+          "data_sed_ratio":6.973494765305826, "star_r":1.6, "star_m":1.65, "mdisk":1.e-3, "star_temp":8250,\
           "kappa":"['56e-3_pah']","Kurucz":True,"out_wall":70., "out_dep":1e-1, "sed_ratio_uncert":0.001}
 
 #A test code block to see the effect of changing one parameter at a time.
