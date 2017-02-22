@@ -342,7 +342,8 @@ def lnprior(x, out_wall):
        params['r_wall'] > amr_safe_frac*params['r_in'] and \
        out_wall         > amr_safe_frac*params['r_wall'] and \
        params['r_dust'] > 0.1 and \
-       params['dtog']   < 5000.:
+       params['dtog']   < 5000. and \
+       (params['planet_r'] == 0. or params['planet_r'] > 0.02):
 #        params['r_in'] < params['r_wall'] and params['r_wall'] < out_wall and 
 #       params['r_wall'] > params['r_in']+0.1 and params['r_dust'] < params['r_in'] and 
        
