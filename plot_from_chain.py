@@ -56,8 +56,17 @@ if complete:
         value = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]),
                              zip(*np.percentile(samples, [16, 50, 84],
                                                 axis=0)))
-        print(names[i], ' has value and errors: ', value[i])
-    
+        #print(names[i], ' has value and errors: ', value[i])
+        #print(' ')
+        #print('in latex format for a table these parameters are:')
+        val = value[i]
+        #print('in latex format for a table these parameters are:')
+        if val[0] < 1.:
+        #if i in [0,1,2,8,9]:
+            print(names[i], ': ', '{0:6.3e}'.format(val[0]),'$^{+','{0:6.3e}'.format(val[1]),'}_{-','{0:6.3e}'.format(val[2]),'}$')
+        else:
+            print(names[i], ': ', '{0:6.3f}'.format(val[0]),'$^{+','{0:6.3f}'.format(val[1]),'}_{-','{0:6.3f}'.format(val[2]),'}$')
+
     if plot_results:
         os.makedirs("param_vs_param")
         #Plot the MC threads
