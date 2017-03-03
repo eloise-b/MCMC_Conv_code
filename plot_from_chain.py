@@ -12,6 +12,7 @@ import matplotlib
 #matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
+import corner
 #import radmc3dPy as r3
 #import astropy.io.fits as pyfits
 import pdb
@@ -22,11 +23,17 @@ import pickle
 complete = True
 #if the chain did not complete, use join_chain.py to make the chain_file.txt
 plot_results = False
+plot_corner = False
+type = "sym"
 im_num = 15.
 temp=10000.
 #the names of the parameters
-names=['d_to_g','gap_dep_1','gap_dep_2','r_dust','r_in','r_wall','inclination','pa','star_x','star_y',\
+names=['d_to_g     ','gap_dep_1  ','gap_dep_2  ','r_dust     ','r_in       ','r_wall     ',\
+       'inclination','pa         ','star_x     ','star_y     ',\
+       'planet_x   ','planet_y   ','planet_r   ']
+label=['d_to_g','gap_dep_1','gap_dep_2','r_dust','r_in','r_wall','inclination','pa','star_x','star_y',\
        'planet_x','planet_y','planet_r']
+
 #value=[d_to_g,gap_dep_1,gap_dep_2,r_dust,r_in,r_wall,inclination,pa,star_x,star_y,\
 #       planet_x,planet_y,planet_r]
 
@@ -102,6 +109,17 @@ if complete:
                     plt.savefig(im_name)
                     plt.clf()
                 
+    if plot_corner:
+        if type == "sym":
+            samples = samples[:,:8]
+        elif type == "asym":
+            samples = samples[:,:10]
+        else:
+            #planet case
+            samples = samples
+        fig = corner.corner(samples,labels=label)
+        fig.savefig("corner.eps")
+    
     
 else:
     f = np.loadtxt('chain_file.txt')
@@ -152,5 +170,6 @@ else:
                     plt.ylabel(l)
                     plt.savefig(im_name)
                     plt.clf()
-            
+
+
             
