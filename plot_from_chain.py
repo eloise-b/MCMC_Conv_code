@@ -31,7 +31,7 @@ temp=10000.
 names=['d_to_g     ','gap_dep_1  ','gap_dep_2  ','r_dust     ','r_in       ','r_wall     ',\
        'inclination','pa         ','star_x     ','star_y     ',\
        'planet_x   ','planet_y   ','planet_r   ']
-latex_names = ["Dust to gas ratio","Inner disc depletion factor","Gap depletion factor",\        
+latex_names = ["Dust to gas ratio","Inner disc depletion factor","Gap depletion factor",\
                "Inner disc radius $(\au)$","Inner radius $(\au)$","Wall radius $(\au)$",\
                "Inclination $(\degree)$","Position angle $(\degree)$","Star x $(\au)$",\
                "Star y $(\au)$","Planet x $(\au)$","Planet y $(\au)$","Planet Radius $(\rsol)$"]     
