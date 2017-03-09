@@ -31,6 +31,10 @@ temp=10000.
 names=['d_to_g     ','gap_dep_1  ','gap_dep_2  ','r_dust     ','r_in       ','r_wall     ',\
        'inclination','pa         ','star_x     ','star_y     ',\
        'planet_x   ','planet_y   ','planet_r   ']
+latex_names = ["Dust to gas ratio","Inner disc depletion factor","Gap depletion factor",\        
+               "Inner disc radius $(\au)$","Inner radius $(\au)$","Wall radius $(\au)$",\
+               "Inclination $(\degree)$","Position angle $(\degree)$","Star x $(\au)$",\
+               "Star y $(\au)$","Planet x $(\au)$","Planet y $(\au)$","Planet Radius $(\rsol)$"]     
 label=['d_to_g','gap_dep_1','gap_dep_2','r_dust','r_in','r_wall','inclination','pa','star_x','star_y',\
        'planet_x','planet_y','planet_r']
 
@@ -69,6 +73,28 @@ if complete:
             #print('in latex format for a table these parameters are:')
             val = value[i]
             #print('in latex format for a table these parameters are:')
+            #print(names[i], ': ', '{0:6.1e}'.format(val[0]),'$^{+','{0:6.1e}'.format(val[1]),'}_{-','{0:6.1e}'.format(val[2]),'}$')
+            #f.write(str(names[i])+': '+'{0:6.1e}'.format(val[0])+'$^{+'+'{0:6.1e}'.format(val[1])+'}_{-'+'{0:6.1e}'.format(val[2])+'}$\n')
+            #print('in latex format for a table these parameters are:')
+            #print(names[i], ': ', '{0:6.1e}'.format(val[0]),'$^{+','{0:6.1e}'.format(val[1]),'}_{-','{0:6.1e}'.format(val[2]),'}$')
+            #f.write(str(names[i])+': '+'{0:6.1e}'.format(val[0])+'$^{+'+'{0:6.1e}'.format(val[1])+'}_{-'+'{0:6.1e}'.format(val[2])+'}$\n')
+            #print(names[i], ': ', '{0:.2g}'.format(val[0]),'$^{+','{0:.2g}'.format(val[1]),'}_{-','{0:.2g}'.format(val[2]),'}$')
+            #f.write(str(names[i])+': '+'{0:.2g}'.format(val[0])+'$^{+'+'{0:.2g}'.format(val[1])+'}_{-'+'{0:.2g}'.format(val[2])+'}$\n')
+            x = '{0:1.1e}'.format(val[0])
+            y = float(x.split('e')[1])
+            if val[0] < 1.:
+                v = '{0:1.1e}'.format(val[0])
+                print(names[i], ': ', v.split('e')[0],'$^{+','{0:.2g}'.format(val[1]),'}_{-','{0:.2g}'.format(val[2]),'}$')
+                f.write(str(names[i])+': '+v.split('e')[0]+'$^{+'+'{0:.2g}'.format(val[1]/(1*10**y))+'}_{-'+'{0:.2g}'.format(val[2]/(1*10**y))+r'}\times 10^'+'{0:1.0f}'.format(y)+'$\n')
+            elif val[0] > 100.:
+                v = '{0:.2g}'.format(val[0])
+                print(names[i], ': ', v.split('e')[0],'$^{+','{0:.2g}'.format(val[1]),'}_{-','{0:.2g}'.format(val[2]),'}$')
+                f.write(str(names[i])+': '+v.split('e')[0]+'$^{+'+'{0:.2g}'.format(val[1]/(1*10**y))+'}_{-'+'{0:.2g}'.format(val[2]/(1*10**y))+r'}\times 10^'+'{0:1.0f}'.format(y)+'$\n')
+            else:
+                print(names[i], ': ', '{0:.2g}'.format(val[0]),'$^{+','{0:.2g}'.format(val[1]),'}_{-','{0:.2g}'.format(val[2]),'}$')
+                f.write(str(names[i])+': '+'{0:.2g}'.format(val[0])+'$^{+'+'{0:.2g}'.format(val[1]/(1*10**y))+'}_{-'+'{0:.2g}'.format(val[2]/(1*10**y))+'}$\n')
+
+            '''
             if val[0] < 1.:
             #if i in [0,1,2,8,9]:
                 print(names[i], ': ', '{0:6.3e}'.format(val[0]),'$^{+','{0:6.3e}'.format(val[1]),'}_{-','{0:6.3e}'.format(val[2]),'}$')
@@ -76,7 +102,7 @@ if complete:
             else:
                 print(names[i], ': ', '{0:6.3f}'.format(val[0]),'$^{+','{0:6.3f}'.format(val[1]),'}_{-','{0:6.3f}'.format(val[2]),'}$')
                 f.write(str(names[i])+': '+'{0:6.3f}'.format(val[0])+'$^{+'+'{0:6.3f}'.format(val[1])+'}_{-'+'{0:6.3f}'.format(val[2])+'}$\n')
-    
+            '''
     if plot_results:
         os.makedirs("param_vs_param")
         #Plot the MC threads
