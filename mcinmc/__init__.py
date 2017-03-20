@@ -1,2 +1,2 @@
-from lnprob_radmc3d import lnprob_conv_disk_radmc3d
+from lnprob_radmc3d import *
 import imtools

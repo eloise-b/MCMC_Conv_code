@@ -237,7 +237,7 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
 def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi_txt='',plot_ims=True,
     preconvolve=True, pxscale=0.01, save_im_data=True, make_sed=True, paper_ims=False, label='',
     model_chi_dir = '/Users/eloisebirchall/Documents/Uni/Masters/radmc-3d/IRS_48_grid/MCMC_stuff/',
-    north_ims=False, rotate_present = False):
+    north_ims=False, rotate_present = False, bgnd=[169180.0], gain=4.0, rnoise=10.0):
     """Rotate a model image, and find the best fit. Output (for now!) 
     goes to file in the current directory.
     
@@ -272,15 +272,18 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
     rotate_present: Bool
         if true makes images that are rotated to have north up and east left, and that could be
         used in a paper.
+    bgnd: float or numpy float array
+        The background level in each target image.
+    gain: float (optional)
+        Gain in electrons per ADU. Default 4.0.
+    rnoise: float (optional)
+        Readout noise in ADU. Default 10.0
     
     Returns
     -------
     chi2:
         Chi-squared. Not returned if model_chi_txt has non-zero length.
     """
-    #Set constants    
-    pixel_std = 300.0 #Rough pixel standard deviation
-
     mod_sz = im.shape[0]
     sz = tgt_ims.shape[1]
     ntgt = tgt_ims.shape[0]
@@ -289,6 +292,9 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
     extent_radec = [pxscale*sz/2, -pxscale*sz/2, -pxscale*sz/2, pxscale*sz/2]
     stretch=0.01
     mcmc_stretch=1e-4
+    
+    if len(bgnd) != ntgt:
+        bgnd = np.bgnd[0]*np.ones(ntgt)
     
     #'''
     #since the data is rotated by itself, this section is no longer needed
@@ -398,8 +404,11 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
             #Normalise the image
             ims_shifted[j] *= np.sum(tgt_ims[n])/np.sum(ims_shifted[j])
             
+            #Compute the pixel variance.
+            pixel_var = (tgt_ims[n] + bgnd[n] + rnoise**2)/gain
+            
             #Now compute the chi-squared!
-            chi_squared[n,j] = np.sum( (ims_shifted[j] - tgt_ims[n])**2/pixel_std**2 )
+            chi_squared[n,j] = np.sum( (ims_shifted[j] - tgt_ims[n])**2/pixel_var )
         
         #Find the best shifted calibrator image (convolved with model) and save this as the best model image for this target image.
         best_conv = np.argmin(chi_squared[n])
