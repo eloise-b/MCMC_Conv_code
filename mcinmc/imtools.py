@@ -42,8 +42,8 @@ def ft_and_resample(cal_ims):
     cal_ims_ft = np.zeros( (ncal,sz*2,sz+1),dtype=np.complex )
     for j in range(ncal):
         cal_im_ft_noresamp = np.fft.rfft2(cal_ims[j,:,:])
-        cal_ims_ft[j,0:sz/2,0:sz/2+1] = cal_im_ft_noresamp[0:sz/2,0:sz/2+1]
-        cal_ims_ft[j,-sz/2:,0:sz/2+1] = cal_im_ft_noresamp[-sz/2:,0:sz/2+1]
+        cal_ims_ft[j,0:sz//2,0:sz//2+1] = cal_im_ft_noresamp[0:sz//2,0:sz//2+1]
+        cal_ims_ft[j,-sz//2:,0:sz//2+1] = cal_im_ft_noresamp[-sz//2:,0:sz//2+1]
     return cal_ims_ft
 
 def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_name='arcsinh_im.png', \
@@ -237,7 +237,8 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
 def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi_txt='',plot_ims=True,
     preconvolve=True, pxscale=0.01, save_im_data=True, make_sed=True, paper_ims=False, label='',
     model_chi_dir = '/Users/eloisebirchall/Documents/Uni/Masters/radmc-3d/IRS_48_grid/MCMC_stuff/',
-    north_ims=False, rotate_present = False, bgnd=[169180.0], gain=4.0, rnoise=10.0):
+    north_ims=False, rotate_present = False, bgnd=[360000.0], gain=4.0, rnoise=10.0, extn='.png',
+    chi2_calc_hw=40):
     """Rotate a model image, and find the best fit. Output (for now!) 
     goes to file in the current directory.
     
@@ -278,6 +279,8 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         Gain in electrons per ADU. Default 4.0.
     rnoise: float (optional)
         Readout noise in ADU. Default 10.0
+    chi2_calc_hw: int
+        Half-width of the region in the target image for which we are calculating chi^2.
     
     Returns
     -------
@@ -294,7 +297,7 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
     mcmc_stretch=1e-4
     
     if len(bgnd) != ntgt:
-        bgnd = np.bgnd[0]*np.ones(ntgt)
+        bgnd = bgnd*np.ones(ntgt)
     
     #'''
     #since the data is rotated by itself, this section is no longer needed
@@ -323,19 +326,19 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
     for i in range(ntgt):
         rotated_image = nd.interpolation.rotate(im, pa[i], reshape=False, order=1)
         if plot_ims:
-            arcsinh_plot(rotated_image, mcmc_stretch, im_name='mcmc_im_'+str(i)+'.eps', extent=extent)
-        rotated_image = rotated_image[mod_sz/2 - sz:mod_sz/2 + sz,mod_sz/2 - sz:mod_sz/2 + sz]
+            arcsinh_plot(rotated_image, mcmc_stretch, im_name='mcmc_im_'+str(i)+extn, extent=extent)
+        rotated_image = rotated_image[mod_sz//2 - sz:mod_sz//2 + sz,mod_sz//2 - sz:mod_sz//2 + sz]
         rotated_image_ft = np.fft.rfft2(np.fft.fftshift(rotated_image))
         rotated_ims.append(rotated_image)
         rotated_ims_ft.append(rotated_image_ft)
     rotated_image = np.array(rotated_ims)
     rotated_image_ft = np.array(rotated_ims_ft)
     if plot_ims:
-        arcsinh_plot(np.average(rotated_image, axis=0), mcmc_stretch, im_name='rot_im.eps', extent=extent)
+        arcsinh_plot(np.average(rotated_image, axis=0), mcmc_stretch, im_name='rot_im'+extn, extent=extent)
     if paper_ims:
-        arcsinh_plot(np.average(rotated_image, axis=0), mcmc_stretch, im_label=label+'Model', im_name='rot_im_av_paper.eps', extent=extent)
+        arcsinh_plot(np.average(rotated_image, axis=0), mcmc_stretch, im_label=label+'Model', im_name='rot_im_av_paper'+extn, extent=extent)
         rot_model = nd.interpolation.rotate(im, pa_sky, reshape=False, order=1)
-        arcsinh_plot(rot_model, mcmc_stretch, im_label=label+'Model', im_name='rot_im_paper.eps', \
+        arcsinh_plot(rot_model, mcmc_stretch, im_label=label+'Model', im_name='rot_im_paper'+extn, \
                      extent=extent_radec, x_ax_label='RA Offset (")', y_ax_label='Dec Offset (")',\
                      radec=True)
         
@@ -347,9 +350,9 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
     rotated_image_ft = np.fft.rfft2(np.fft.fftshift(rotated_image))
     
     if plot_ims:
-        arcsinh_plot(rotated_image, mcmc_stretch, im_name='rot_im.eps', extent=extent)
+        arcsinh_plot(rotated_image, mcmc_stretch, im_name='rot_im'+extn, extent=extent)
     if paper_ims:
-        arcsinh_plot(rotated_image, mcmc_stretch, im_label=label+'Model', im_name='rot_im_paper.eps', extent=extent)
+        arcsinh_plot(rotated_image, mcmc_stretch, im_label=label+'Model', im_name='rot_im_paper'+extn, extent=extent)
     '''
     #Output the model rotated image if needed.
     #if plot_ims:
@@ -388,6 +391,13 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         #Find the peak for the target
         xypeak_tgt = np.argmax(tgt_ims[n])
         xypeak_tgt = np.unravel_index(xypeak_tgt, tgt_ims[n].shape)
+        
+        #Giant warning if the peak is too close to the edge.
+        if (xypeak_tgt[0]<chi2_calc_hw) or (xypeak_tgt[1]<chi2_calc_hw) or \
+            (xypeak_tgt[0]>tgt_ims[n].shape[0]-chi2_calc_hw) or \
+            (xypeak_tgt[1]>tgt_ims[n].shape[1]-chi2_calc_hw):
+            raise UserWarning("Image too cloes to the edge! Reduce chi2_calc_hw...")
+        
         conv_ims = np.empty( (ncal,2*sz,2*sz) )
         for j in range(ncal):
             conv_ims[j,:,:] = np.fft.irfft2(cal_ims_ft[j]*rotated_image_ft[n])
@@ -405,10 +415,12 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
             ims_shifted[j] *= np.sum(tgt_ims[n])/np.sum(ims_shifted[j])
             
             #Compute the pixel variance.
-            pixel_var = (tgt_ims[n] + bgnd[n] + rnoise**2)/gain
+            pixel_var = (np.maximum(tgt_ims[n],0) + np.maximum(bgnd[n],0) + rnoise**2)/gain
             
             #Now compute the chi-squared!
-            chi_squared[n,j] = np.sum( (ims_shifted[j] - tgt_ims[n])**2/pixel_var )
+            chi_squared[n,j] = np.sum( \
+                ((ims_shifted[j] - tgt_ims[n])**2/pixel_var)\
+                [xypeak_tgt[0]-chi2_calc_hw:xypeak_tgt[0]+chi2_calc_hw,xypeak_tgt[1]-chi2_calc_hw:xypeak_tgt[1]+chi2_calc_hw] )
         
         #Find the best shifted calibrator image (convolved with model) and save this as the best model image for this target image.
         best_conv = np.argmin(chi_squared[n])
@@ -444,45 +456,45 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         
         if plot_ims:
             #plot the stretched version of the best model image
-            arcsinh_plot(best_model_ims[n], stretch, im_name = 'model_stretch_' + str(n) + '.eps', extent=extent)
+            arcsinh_plot(best_model_ims[n], stretch, im_name = 'model_stretch_' + str(n) + extn, extent=extent)
             #plot the best model images, linear scaling.
             plt.clf()
             plt.imshow(best_model_ims[n], interpolation='nearest', extent=extent)
-            im_name = 'model_im_' + str(n) + '.eps'
+            im_name = 'model_im_' + str(n) + extn
             plt.savefig(im_name, bbox_inches='tight')
             plt.clf()
             plt.imshow(residual_ims[n], interpolation='nearest',cmap=cm.cubehelix, extent=extent)
             plt.colorbar(pad=0.0)
-            stretch_name = 'target-model_' + str(n) + '.eps'
+            stretch_name = 'target-model_' + str(n) + extn
             plt.savefig(stretch_name, bbox_inches='tight')
             plt.clf()
             plt.imshow(ratio_ims[n], interpolation='nearest',cmap=cm.PiYG, extent=extent, vmin=0., vmax=2.)
             plt.colorbar(pad=0.0)
-            ratio_name = 'ratio_' + str(n) + '.eps'
+            ratio_name = 'ratio_' + str(n) + extn
             plt.savefig(ratio_name, bbox_inches='tight')
             plt.clf()
             #generate_images(best_model_ims,n)
 
     if plot_ims:
-        arcsinh_plot(tgt_sum, stretch, asinh_vmin=-2, im_name='target_sum.eps', extent=extent)
-        arcsinh_plot(model_sum, stretch, asinh_vmin=-2, im_name='model_sum.eps', extent=extent)
-        arcsinh_plot(tgt_sum-model_sum, stretch, im_name = 'resid_sum.eps', res=True, extent=extent, scale_val=np.max(tgt_sum))
+        arcsinh_plot(tgt_sum, stretch, asinh_vmin=-2, im_name='target_sum'+extn, extent=extent)
+        arcsinh_plot(model_sum, stretch, asinh_vmin=-2, im_name='model_sum'+extn, extent=extent)
+        arcsinh_plot(tgt_sum-model_sum, stretch, im_name = 'resid_sum'+extn, res=True, extent=extent, scale_val=np.max(tgt_sum))
         plt.imshow(tgt_sum-model_sum, interpolation='nearest', extent=extent, cmap=cm.cubehelix)
         plt.colorbar(pad=0.0)
-        plt.savefig('residual.eps',bbox_inches='tight')
+        plt.savefig('residual'+extn,bbox_inches='tight')
         plt.clf()
     
     if paper_ims:
-        arcsinh_plot(tgt_sum, stretch, asinh_vmin=0, im_label='Data', im_name='target_sum_paper_labelled.eps', extent=extent)
-        arcsinh_plot(tgt_sum, stretch, asinh_vmin=0, im_name='target_sum_paper.eps', extent=extent)
-        arcsinh_plot(tgt_match_rot_sum, stretch, asinh_vmin=0, im_name='target_match_rot_sum_paper.eps', extent=extent)
-        arcsinh_plot(tgt_rot_sum, stretch, asinh_vmin=0, im_name='target_rot_sum_paper.eps', extent=extent)
-        arcsinh_plot(model_sum, stretch, asinh_vmin=0, im_label=label+'Conv Model', im_name='model_sum_paper.eps', extent=extent)
-        arcsinh_plot(tgt_sum-model_sum, stretch, im_label=label+'Residual, D - M', res=True, im_name = 'resid_sum_paper.eps', extent=extent, scale_val=np.max(tgt_sum))
-        arcsinh_plot(tgt_rot_sum-rot_conv_sum, stretch, im_label=label+'Residual, D - M', res=True, im_name = 'resid_sum_paper_rot_first.eps', extent=extent_radec, scale_val=np.max(tgt_sum), x_ax_label='RA Offset (")', y_ax_label='Dec Offset (")', radec=True  )
+        arcsinh_plot(tgt_sum, stretch, asinh_vmin=0, im_label='Data', im_name='target_sum_paper_labelled'+extn, extent=extent)
+        arcsinh_plot(tgt_sum, stretch, asinh_vmin=0, im_name='target_sum_paper'+extn, extent=extent)
+        arcsinh_plot(tgt_match_rot_sum, stretch, asinh_vmin=0, im_name='target_match_rot_sum_paper'+extn, extent=extent)
+        arcsinh_plot(tgt_rot_sum, stretch, asinh_vmin=0, im_name='target_rot_sum_paper'+extn, extent=extent)
+        arcsinh_plot(model_sum, stretch, asinh_vmin=0, im_label=label+'Conv Model', im_name='model_sum_paper'+extn, extent=extent)
+        arcsinh_plot(tgt_sum-model_sum, stretch, im_label=label+'Residual, D - M', res=True, im_name = 'resid_sum_paper'+extn, extent=extent, scale_val=np.max(tgt_sum))
+        arcsinh_plot(tgt_rot_sum-rot_conv_sum, stretch, im_label=label+'Residual, D - M', res=True, im_name = 'resid_sum_paper_rot_first'+extn, extent=extent_radec, scale_val=np.max(tgt_sum), x_ax_label='RA Offset (")', y_ax_label='Dec Offset (")', radec=True  )
         #plot a model image only rotated by the pa
         
-        #arcsinh_plot(tgt_sum/model_sum, stretch, im_label=label+'Ratio, Target/Model', im_name = 'ratio_paper.eps', extent=extent)#, scale_val=np.max(tgt_sum))        
+        #arcsinh_plot(tgt_sum/model_sum, stretch, im_label=label+'Ratio, Target/Model', im_name = 'ratio_paper'+extn, extent=extent)#, scale_val=np.max(tgt_sum))        
         #plt.imshow(model_sum/tgt_sum, interpolation='nearest', extent=extent, cmap=cm.cubehelix, vmin=0., vmax=2.)
         #plt.xticks(fontsize=18)
         #plt.yticks(fontsize=18)        
@@ -492,7 +504,7 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         #cbar.set_label('Model/Data',size=23)
         #cbar.ax.tick_params(labelsize=18)
         #plt.text(-0.6,0.6,label+'Ratio',color='white',ha='left',va='top',fontsize=23)
-        #plt.savefig('ratio_paper.eps', bbox_inches='tight')
+        #plt.savefig('ratio_paper'+extn, bbox_inches='tight')
         plt.clf()
         plt.imshow(model_sum/tgt_sum, interpolation='nearest', extent=extent, cmap=cm.PiYG, vmin=0., vmax=2.)
         plt.xticks(fontsize=18)
@@ -503,7 +515,7 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         cbar.set_label('Model/Data',size=23)
         cbar.ax.tick_params(labelsize=18)
         plt.text(-0.6,0.6,label+'Ratio',color='black',ha='left',va='top',fontsize=23)
-        plt.savefig('ratio_paper_2.eps', bbox_inches='tight')
+        plt.savefig('ratio_paper_2'+extn, bbox_inches='tight')
         plt.clf()
         plt.imshow(rot_conv_sum/tgt_rot_sum, interpolation='nearest', extent=extent_radec, cmap=cm.PiYG, vmin=0., vmax=2.)
         plt.xticks(fontsize=18)
@@ -514,18 +526,18 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         cbar.set_label('Model/Data',size=23)
         cbar.ax.tick_params(labelsize=18)
         plt.text(0.6,0.6,label+'Ratio',color='black',ha='left',va='top',fontsize=23)
-        plt.savefig('ratio_paper_rot_first.eps', bbox_inches='tight')
+        plt.savefig('ratio_paper_rot_first'+extn, bbox_inches='tight')
         plt.clf()
     
     if north_ims:
         #images with arrows on them:
         for i in range(ntgt):
             angle = pa_vert[i]*(np.pi/180)
-            north_name = 'target_north_'+str(i)+'.eps'
+            north_name = 'target_north_'+str(i)+extn
             arcsinh_plot(tgt_ims[i], stretch, asinh_vmin=0, north=True, angle=-angle, im_name=north_name, extent=extent)
-            north_name = 'resid_north_'+str(i)+'.eps'
+            north_name = 'resid_north_'+str(i)+extn
             arcsinh_plot(tgt_ims[i]-best_model_ims[i], stretch, north=True, angle=-angle, res=True, im_name = north_name, extent=extent, scale_val=np.max(tgt_ims[i]))
-        arcsinh_plot(tgt_match_rot_sum, stretch, asinh_vmin=0, im_name='target_match_rot_sum_paper_north.eps', extent=extent, north=True, angle=-(pa_vert[0]*(np.pi/180)))
+        arcsinh_plot(tgt_match_rot_sum, stretch, asinh_vmin=0, im_name='target_match_rot_sum_paper_north'+extn, extent=extent, north=True, angle=-(pa_vert[0]*(np.pi/180)))
         
     if rotate_present:
 #         rot_best_model_ims = np.empty( (ntgt,sz,sz) )
@@ -571,10 +583,10 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         conv_file.close()
         
         arcsinh_plot(rot_conv_sum, stretch, asinh_vmin=0, im_label=label+'Conv Model', \
-                     im_name='rot_conv_sum_paper.eps', extent=extent_radec, \
+                     im_name='rot_conv_sum_paper'+extn, extent=extent_radec, \
                      x_ax_label='RA Offset (")', y_ax_label='Dec Offset (")', radec=True)
         arcsinh_plot(rot_resid_sum, stretch, im_label=label+'Residual, D - M', res=True, \
-                     im_name = 'rot_resid_sum_paper.eps', extent=extent_radec, scale_val=np.max(tgt_sum),\
+                     im_name = 'rot_resid_sum_paper'+extn, extent=extent_radec, scale_val=np.max(tgt_sum),\
                      x_ax_label='RA Offset (")', y_ax_label='Dec Offset (")', radec=True)  
         plt.clf()
         plt.imshow(rot_ratio_sum/ntgt, interpolation='nearest', extent=extent_radec, cmap=cm.PiYG, vmin=0., vmax=2.)
@@ -586,7 +598,7 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         cbar.set_label('Model/Data',size=23)
         cbar.ax.tick_params(labelsize=18)
         plt.text(0.6,0.6,label+'Ratio',color='black',ha='left',va='top',fontsize=23)
-        plt.savefig('rot_ratio_paper.eps', bbox_inches='tight')
+        plt.savefig('rot_ratio_paper'+extn, bbox_inches='tight')
         plt.clf()
         
         #ratio_of_sums = model_sum/tgt_sum
@@ -657,7 +669,7 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         plt.legend(loc='best')
         title = 'SED'
         plt.title(title)
-        name = 'SED.eps'
+        name = 'SED'+extn
         plt.savefig(name)
         plt.clf()
         

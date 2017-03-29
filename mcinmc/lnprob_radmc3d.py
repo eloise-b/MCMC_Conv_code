@@ -42,7 +42,8 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     planet_temp=1500.0, dist=120.0, pxsize=0.01, wav_in_um=3.776, mdisk=0.0001,\
     star_temp=9000.0, kappa = "['carbon']", Kurucz= True, plot_ims=False, save_im_data=False, \
     make_sed=False, data_sed_ratio = 8.672500426996962, sed_ratio_uncert=0.01, out_wall = 60., \
-    out_dep = 1e-1, paper_ims=False, label='', north_ims=False, rotate_present = False):
+    out_dep = 1e-1, paper_ims=False, label='', north_ims=False, rotate_present = False,
+    kurucz_dir='/Users/mireland/theory/', background=None):
 #def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',nphot="long(4e4)",\
 #    nphot_scat="long(2e4)", remove_directory=True, star_r=2.0, star_m=2.0, planet_mass=0.001,\
 #    planet_temp=1500.0, dist=120.0, pxsize=0.01, wav_in_um=3.776, mdisk=0.0001, r_dust=0.3,\
@@ -118,8 +119,10 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     calib_ims = pyfits.getdata(filename,1)
     
     #Get the pa information for the object from the fits file
-    pa_vert = pyfits.getdata(filename,2)['pa'] 
-    
+    bintab = pyfits.getdata(filename,2)
+    pa_vert = bintab['pa'] 
+    if not background:
+        background = bintab['background'] 
     
     #Flip the target ims so 0,0 is in the bottom left, not the top left
     #Rotate the data so that you undo what the telescope rotation does, so that North is up and East is left
@@ -244,7 +247,8 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
                                 pstar=star_pos, dustkappa_ext=kappa, gap_rin=gapin,\
                                 gap_rout=gapout, gap_drfact=gap_depletion, dusttogas=dusttogas_str,\
                                 rin=r_in,nphot=nphot,nphot_scat=nphot_scat, nx=n_x, xbound=x_bound,\
-                                nz=n_z, srim_rout=1.0, staremis_type=staremis_type,mdisk=mdisk_str)
+                                nz=n_z, srim_rout=1.0, staremis_type=staremis_type,mdisk=mdisk_str,\
+                                kurucz_dir=kurucz_dir)
     # run the thermal monte carlo
     os.system('radmc3d mctherm > mctherm.out') 
     #Create the image
@@ -280,7 +284,7 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     #This line call Keck tools
     chi_tot = rotate_and_fit(im, pa_vert, params['pa_sky'],cal_ims_ft,tgt_ims, model_type, model_chi_txt,\
                plot_ims=plot_ims,save_im_data=save_im_data, make_sed=make_sed,paper_ims=paper_ims,\
-               label=label,north_ims=north_ims, rotate_present=rotate_present)
+               label=label,north_ims=north_ims, rotate_present=rotate_present, bgnd=background)
     
     #This is "cd .."
     os.chdir(os.pardir)
@@ -293,9 +297,11 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     else:
         print("*** Figures saved in " + pid_str + " ***")
     
+    print("*** Computed chi-squared {0:7.1f} for thread {1:s} ***".format(chi_tot/np.prod(target_ims.shape),pid_str))
+    
     #Return log likelihood
     lnlike = -1*(0.5*chi_tot/temperature +((np.log10(data_sed_ratio)-np.log10(model_sed_ratio))**2/(2*sed_ratio_uncert**2)))
-    print("*** Computed likelihood {0:7.1f} for thread {1:s} ***".format(lnlike,pid_str))
+    print("*** Computed log likelihood {0:7.1f} for thread {1:s} ***".format(lnlike,pid_str))
 
     c = open('chain'+pid_str+'.txt','a')
     c.write(str(lnlike) + ',' + model_type + '\n')
