@@ -3,8 +3,9 @@ import multiprocessing
 import numpy as np
 import emcee
 import pickle
-from lnprob_radmc3d import *
-#from lnprob_radmc3d import lnprob_conv_disk_radmc3d
+#ELOISE - this import * is dodgy
+#from lnprob_radmc3d import *
+from mcinmc import lnprob_conv_disk_radmc3d
 
 multiprocess=True
 follow=True
@@ -59,7 +60,7 @@ ipar_sig = np.array([.1,.1,.1,.0,.1,.1,.5,1.,0.1,0.1,0.1,0.1,0.1])
 
 #mode='test'
 mode='mcmc'
-#mode='plot'
+mode='plot'
 kwargs = {"planet_temp":1500,"temperature":10000,"filename":"IRS48_ims.fits", "kappa":"['56e-3_pah']","Kurucz":True, "sed_ratio_uncert":0.001}
 
 #A test code block to see the effect of changing one parameter at a time.

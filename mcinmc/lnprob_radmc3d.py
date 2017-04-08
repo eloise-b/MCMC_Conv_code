@@ -43,7 +43,7 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     star_temp=9000.0, kappa = "['carbon']", Kurucz= True, plot_ims=False, save_im_data=False, \
     make_sed=False, data_sed_ratio = 8.672500426996962, sed_ratio_uncert=0.01, out_wall = 60., \
     out_dep = 1e-1, paper_ims=False, label='', north_ims=False, rotate_present = False,
-    kurucz_dir='/Users/mireland/theory/', background=None):
+    kurucz_dir='/Users/mireland/theory/', background=None, empirical_background=True):
 #def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',nphot="long(4e4)",\
 #    nphot_scat="long(2e4)", remove_directory=True, star_r=2.0, star_m=2.0, planet_mass=0.001,\
 #    planet_temp=1500.0, dist=120.0, pxsize=0.01, wav_in_um=3.776, mdisk=0.0001, r_dust=0.3,\
@@ -100,6 +100,10 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
         depletion of the outer region
     label : string
         what you want written in the image
+    background : float
+        background level in target images
+    empirical_background : boolean (default True)
+        Do we find an empirical background from the chip corners?
     """
    
     print("Debugging... planet_temp is: {0:5.1f}".format(planet_temp)) 
@@ -143,9 +147,8 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     cal_ims = np.asarray(cal_ims)
     
     #Resample onto half pixel size and Fourier transform.
-    cal_ims_ft = ft_and_resample(cal_ims)
-    
-    
+    #FIXME: This really *shouldn't* be done at every iteration of the Monte-Carlo loop!
+    cal_ims_ft = ft_and_resample(cal_ims, empirical_background=empirical_background)
     
     #read in the star_only image for comparison
     imag_obj_star=r3.image.readImage('image_star.out') 
@@ -165,7 +168,7 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     #time.sleep(10)
     os.chdir(pid_str)
     
-    #!!! This **really** shouldn't go here but should be its own routine.
+    #FIXME: This **really** shouldn't go here but should be its own routine.
     if plot_ims:
         stretch=0.01
         pxscale=0.01

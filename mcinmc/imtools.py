@@ -28,7 +28,7 @@ import pickle
 #writes the images directly to file, this should make the code run for a shorter time
 #plt.ion()
 
-def ft_and_resample(cal_ims):
+def ft_and_resample(cal_ims, empirical_background=True):
     """Create the Fourier transform of a set of images, resampled onto half the
     pixel scale """
     #Number of images
@@ -37,11 +37,20 @@ def ft_and_resample(cal_ims):
     #Image size     
     sz = cal_ims.shape[1]
 
+    #Corner pixels
+    xy = np.meshgrid(np.arange(sz) - sz//2, np.arange(sz) - sz//2, indexing='ij')
+    rr = np.sqrt(xy[0]**2 + xy[1]**2)
+    outer_pix = np.where(rr > sz//2)
+
     #This should come from a library! but to see details, lets do it manually.
     #do the fast fourier transform of the psfs
     cal_ims_ft = np.zeros( (ncal,sz*2,sz+1),dtype=np.complex )
     for j in range(ncal):
-        cal_im_ft_noresamp = np.fft.rfft2(cal_ims[j,:,:])
+        if empirical_background:
+            this_im = cal_ims[j] - np.median(cal_ims[j][outer_pix])
+        else:
+            this_im = cal_ims[j]
+        cal_im_ft_noresamp = np.fft.rfft2(this_im)
         cal_ims_ft[j,0:sz//2,0:sz//2+1] = cal_im_ft_noresamp[0:sz//2,0:sz//2+1]
         cal_ims_ft[j,-sz//2:,0:sz//2+1] = cal_im_ft_noresamp[-sz//2:,0:sz//2+1]
     return cal_ims_ft
@@ -234,11 +243,11 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
 
 
 #-------------------------------------------------------------------------------------
-def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi_txt='',plot_ims=True,
+def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_chi_txt='',plot_ims=True,
     preconvolve=True, pxscale=0.01, save_im_data=True, make_sed=True, paper_ims=False, label='',
     model_chi_dir = '/Users/eloisebirchall/Documents/Uni/Masters/radmc-3d/IRS_48_grid/MCMC_stuff/',
     north_ims=False, rotate_present = False, bgnd=[360000.0], gain=4.0, rnoise=10.0, extn='.png',
-    chi2_calc_hw=40):
+    chi2_calc_hw=40, bgnd_cal=[360000.0], empirical_var=True, empirical_background=True):
     """Rotate a model image, and find the best fit. Output (for now!) 
     goes to file in the current directory.
     
@@ -275,12 +284,18 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         used in a paper.
     bgnd: float or numpy float array
         The background level in each target image.
+    bgnd_cal: float or numpy float array
+        The background level in each calibrator image (not used!).
     gain: float (optional)
         Gain in electrons per ADU. Default 4.0.
     rnoise: float (optional)
         Readout noise in ADU. Default 10.0
     chi2_calc_hw: int
         Half-width of the region in the target image for which we are calculating chi^2.
+    empirical_var: bool (optonal) Default True
+        Do we use an empirical calculation of target variance from edge pixels?
+    empirical_background: bool (optonal) Default True
+        Do we use an empirical calculation of the background level from edge pixels?
     
     Returns
     -------
@@ -298,6 +313,9 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
     
     if len(bgnd) != ntgt:
         bgnd = bgnd*np.ones(ntgt)
+
+    if len(bgnd_cal) != ncal:
+        bgnd_cal = bgnd_cal*np.ones(ncal)
     
     #'''
     #since the data is rotated by itself, this section is no longer needed
@@ -396,7 +414,26 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         if (xypeak_tgt[0]<chi2_calc_hw) or (xypeak_tgt[1]<chi2_calc_hw) or \
             (xypeak_tgt[0]>tgt_ims[n].shape[0]-chi2_calc_hw) or \
             (xypeak_tgt[1]>tgt_ims[n].shape[1]-chi2_calc_hw):
-            raise UserWarning("Image too cloes to the edge! Reduce chi2_calc_hw...")
+            raise UserWarning("Image too close to the edge! Reduce chi2_calc_hw...")
+ 
+        #FIXME: This expensive calculation (for variance and background)
+        #doesn't need to be done every time in e.g. a monte-carlo loop.
+        xy = np.meshgrid(np.arange(tgt_ims[n].shape[0]) - xypeak_tgt[0], \
+                         np.arange(tgt_ims[n].shape[1]) - xypeak_tgt[1], indexing='ij')
+        rr = np.sqrt(xy[0]**2 + xy[1]**2)
+        outer_pix = np.where(rr > tgt_ims[n].shape[0]//2)
+ 
+        if empirical_background:
+            this_im = tgt_ims[n] - np.median(tgt_ims[n][outer_pix])
+        else:
+            this_im = tgt_ims[n]
+ 
+        #pixel_var has to either be a single number or a 2D array.
+        if empirical_var:
+            pixel_var = np.maximum(this_im,0)/gain + np.var(this_im[outer_pix])
+        else:
+            #Compute the pixel variance.
+            pixel_var = (np.maximum(this_im,0) + np.maximum(bgnd[n],0) + rnoise**2)/gain 
         
         conv_ims = np.empty( (ncal,2*sz,2*sz) )
         for j in range(ncal):
@@ -412,14 +449,11 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
             ims_shifted[j] = ot.rebin(bigim_shifted,(sz,sz))
             
             #Normalise the image
-            ims_shifted[j] *= np.sum(tgt_ims[n])/np.sum(ims_shifted[j])
-            
-            #Compute the pixel variance.
-            pixel_var = (np.maximum(tgt_ims[n],0) + np.maximum(bgnd[n],0) + rnoise**2)/gain
-            
+            ims_shifted[j] *= np.sum(this_im)/np.sum(ims_shifted[j])
+                        
             #Now compute the chi-squared!
             chi_squared[n,j] = np.sum( \
-                ((ims_shifted[j] - tgt_ims[n])**2/pixel_var)\
+                ((ims_shifted[j] - this_im)**2/pixel_var)\
                 [xypeak_tgt[0]-chi2_calc_hw:xypeak_tgt[0]+chi2_calc_hw,xypeak_tgt[1]-chi2_calc_hw:xypeak_tgt[1]+chi2_calc_hw] )
         
         #Find the best shifted calibrator image (convolved with model) and save this as the best model image for this target image.
@@ -428,15 +462,15 @@ def rotate_and_fit(im, pa_vert, pa_sky ,cal_ims_ft,tgt_ims,model_type, model_chi
         best_model_ims[n] = ims_shifted[best_conv]
         best_convs[n] = best_conv
         print("Tgt: {0:d} Cal: {1:d}".format(n,best_conv))
-        residual_ims[n] = tgt_ims[n]-best_model_ims[n]
-        ratio_ims[n] = best_model_ims[n]/tgt_ims[n]
+        residual_ims[n] = this_im-best_model_ims[n]
+        ratio_ims[n] = best_model_ims[n]/this_im
         
         #Create a shifted residual image.
-        tgt_sum += np.roll(np.roll(tgt_ims[n], sz//2 - xypeak_tgt[0], axis=0), 
+        tgt_sum += np.roll(np.roll(this_im, sz//2 - xypeak_tgt[0], axis=0), 
                                                sz//2 - xypeak_tgt[1], axis=1)
         model_sum += np.roll(np.roll(best_model_ims[n], sz//2 - xypeak_tgt[0], axis=0), 
                                                         sz//2 - xypeak_tgt[1], axis=1)
-        tgt_shift = np.roll(np.roll(tgt_ims[n], sz//2 - xypeak_tgt[0], axis=0), sz//2 - xypeak_tgt[1], axis=1)
+        tgt_shift = np.roll(np.roll(this_im, sz//2 - xypeak_tgt[0], axis=0), sz//2 - xypeak_tgt[1], axis=1)
         tgt_rot_sum += nd.interpolation.rotate(tgt_shift, pa_vert[n], reshape=False, order=1)
         tgt_match_rot_sum += nd.interpolation.rotate(tgt_shift, pa_vert[n]-pa_vert[0], reshape=False, order=1)
         #Make shifted and rotated images
