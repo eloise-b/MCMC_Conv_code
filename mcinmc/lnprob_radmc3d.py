@@ -300,6 +300,8 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     else:
         print("*** Figures saved in " + pid_str + " ***")
     
+    #This line needs to be edited to reflect the result when not using the full image to 
+    #calculate the chi^2
     print("*** Computed chi-squared {0:7.1f} for thread {1:s} ***".format(chi_tot/np.prod(target_ims.shape),pid_str))
     
     #Return log likelihood
@@ -354,11 +356,12 @@ def lnprior(x, out_wall):
        params['dtog']   < 5000. and \
        0. <= params['inc'] <= 360. and \
        0. <= params['pa_sky'] <= 360. and \
+       np.sqrt(params['star_x']**2+params['star_y']**2) <= 1. and \
        (params['planet_r'] == 0. or params['planet_r'] > 0.02):
-#        params['r_in'] < params['r_wall'] and params['r_wall'] < out_wall and 
+#       params['r_in'] < params['r_wall'] and params['r_wall'] < out_wall and 
 #       params['r_wall'] > params['r_in']+0.1 and params['r_dust'] < params['r_in'] and 
-       
-       #np.round(params['r_dust'],3) != np.round(params['r_in'],3):
+        #np.sqrt(params['star_x']**2+params['star_y']**2) <= 1. and 
+        #np.round(params['r_dust'],3) != np.round(params['r_in'],3):
         return 0.0
     return -np.inf
    
