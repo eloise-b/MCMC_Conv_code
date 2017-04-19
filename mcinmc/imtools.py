@@ -246,7 +246,7 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
 def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_chi_txt='',plot_ims=True,
     preconvolve=True, pxscale=0.01, save_im_data=True, make_sed=True, paper_ims=False, label='',
     model_chi_dir = '/Users/eloisebirchall/Documents/Uni/Masters/radmc-3d/IRS_48_grid/MCMC_stuff/',
-    north_ims=False, rotate_present = False, bgnd=[360000.0], gain=4.0, rnoise=10.0, extn='.png',
+    north_ims=False, rotate_present = False, bgnd=[360000.0], gain=4.0, rnoise=10.0, extn='.pdf',
     chi2_calc_hw=40, bgnd_cal=[360000.0], empirical_var=True, empirical_background=True):
     """Rotate a model image, and find the best fit. Output (for now!) 
     goes to file in the current directory.
