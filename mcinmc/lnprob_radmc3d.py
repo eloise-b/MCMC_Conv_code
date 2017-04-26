@@ -42,7 +42,8 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     planet_temp=1500.0, dist=120.0, pxsize=0.01, wav_in_um=3.776, mdisk=0.0001,\
     star_temp=9000.0, kappa = "['carbon']", Kurucz= True, plot_ims=False, save_im_data=False, \
     make_sed=False, data_sed_ratio = 8.672500426996962, sed_ratio_uncert=0.01, out_wall = 60., \
-    out_dep = 1e-1, paper_ims=False, label='', north_ims=False, rotate_present = False,
+    out_dep = 1e-1, n_x = [5., 20., 30., 20., 40.], n_z = 60, n_y = [10,30,30,10], \
+    paper_ims=False, label='', north_ims=False, rotate_present = False,
     kurucz_dir='/Users/mireland/theory/', background=None, empirical_background=True):
 #def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',nphot="long(4e4)",\
 #    nphot_scat="long(2e4)", remove_directory=True, star_r=2.0, star_m=2.0, planet_mass=0.001,\
@@ -224,8 +225,8 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     #if params['r_wall'] > 60.:
     #    params['r_wall']=60.
     x_bound = '[{0:7.3f}*au,{1:7.3f}*au, ({1:7.3f}+0.1)*au, {2:7.3f}*au, {2:7.3f}*1.1*au, 100*au]'.format(params['r_dust'],params['r_in'],params['r_wall'])
-    n_x = [5., 20., 30., 20., 40.]
-    n_z = 60
+    #n_x = [5., 20., 30., 20., 40.]
+    #n_z = 60
     if params['planet_r'] != 0.0:
         star_pos = '[[{0:7.9e}*au,{1:7.9e}*au,0.0],[{2:7.9e}*au,{3:7.9e}*au,0.0]]'.format(params['star_x'],params['star_y'],params['planet_x'],params['planet_y'])
         star_temp = '[{0:7.3f}, {1:7.3f}]'.format(star_temp,planet_temp)
@@ -250,7 +251,7 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
                                 pstar=star_pos, dustkappa_ext=kappa, gap_rin=gapin,\
                                 gap_rout=gapout, gap_drfact=gap_depletion, dusttogas=dusttogas_str,\
                                 rin=r_in,nphot=nphot,nphot_scat=nphot_scat, nx=n_x, xbound=x_bound,\
-                                nz=n_z, srim_rout=1.0, staremis_type=staremis_type,mdisk=mdisk_str,\
+                                nz=n_z,ny=n_y, srim_rout=1.0, staremis_type=staremis_type,mdisk=mdisk_str,\
                                 kurucz_dir=kurucz_dir)
     # run the thermal monte carlo
     os.system('radmc3d mctherm > mctherm.out') 
