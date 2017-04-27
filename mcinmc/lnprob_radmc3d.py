@@ -254,7 +254,15 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
                                 nz=n_z,ny=n_y, srim_rout=1.0, staremis_type=staremis_type,mdisk=mdisk_str,\
                                 kurucz_dir=kurucz_dir)
     # run the thermal monte carlo
-    os.system('radmc3d mctherm > mctherm.out') 
+    grep_output=0
+    ntries_mctherm=0
+    while grep_output == 0:
+        ntries_mctherm+=1
+        if ntries_mctherm > 10:
+            raise UserWarning("mctherm isn't working on pid: " + pid_str)
+        os.system('radmc3d mctherm > mctherm.out') 
+        grep_output=os.system('grep ERROR mctherm.out')
+        
     #Create the image
     npix_mod = 256
     #The size per pixel in the image is pxsize * dist / 2. 
