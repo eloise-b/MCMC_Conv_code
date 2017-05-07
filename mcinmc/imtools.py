@@ -57,7 +57,7 @@ def ft_and_resample(cal_ims, empirical_background=True):
 
 def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_name='arcsinh_im.png', \
     scale_val=None, im_label=None, res=False, north=False, angle=0., x_ax_label = 'Offset (")',\
-    y_ax_label = 'Offset (")', radec=False):
+    y_ax_label = 'Offset (")', radec=False, chi_crop=False):
     """A helper routine to make an arcsinh stretched image.
     
     Parameters
@@ -90,6 +90,9 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
         what you want the label on the x axis to be
     y_ax_label: string
         what you want the label on the y axis to be  
+    chi_crop: Boolean
+        is the image one that is cropped for the region chi squared is calc'd in?
+        chi crop and radec can't be at the same time
     """
     if not scale_val:
         scale_val = np.max(im)
@@ -139,7 +142,9 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
             fmt_string = "{0:5.2f}"
         cbar.ax.set_yticklabels([fmt_string.format(y) for y in stretch*np.sinh(ticks)])
         cbar.ax.tick_params(labelsize=18)
-        if radec:
+        if chi_crop:
+            plt.text(0.4,0.4,im_label,color='white',ha='left',va='top',fontsize=23)
+        elif radec:
             plt.text(0.6,0.6,im_label,color='white',ha='left',va='top',fontsize=23)
         else:
             plt.text(-0.6,0.6,im_label,color='white',ha='left',va='top',fontsize=23)
@@ -172,7 +177,9 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
             fmt_string = "{0:5.2f}"
         cbar.ax.set_yticklabels([fmt_string.format(y) for y in stretch*np.sinh(ticks)])
         cbar.ax.tick_params(labelsize=18)
-        if radec:
+        if chi_crop:
+            plt.text(0.4,0.4,im_label,color='white',ha='left',va='top',fontsize=23)
+        elif radec:
             plt.text(0.6,0.6,im_label,color='white',ha='left',va='top',fontsize=23)
         else:
             plt.text(-0.6,0.6,im_label,color='white',ha='left',va='top',fontsize=23)
@@ -364,7 +371,7 @@ def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_c
         arcsinh_plot(rot_model[sz/2.-chi2_calc_hw:sz/2.+chi2_calc_hw,sz/2.-chi2_calc_hw:sz/2.+chi2_calc_hw],\
                      mcmc_stretch, im_label=label+'Model', im_name='rot_im_crop_paper'+extn, \
                      extent=extent_crop, x_ax_label='RA Offset (")', y_ax_label='Dec Offset (")',\
-                     radec=True)
+                     chi_crop=True)
     '''
     
     #do the rotation of the image for the sky pa
@@ -531,7 +538,7 @@ def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_c
         arcsinh_plot(model_sum, stretch, asinh_vmin=0, im_label=label+'Conv Model', im_name='model_sum_paper'+extn, extent=extent)
         arcsinh_plot(tgt_sum-model_sum, stretch, im_label=label+'Residual, D - M', res=True, im_name = 'resid_sum_paper'+extn, extent=extent, scale_val=np.max(tgt_sum))
         arcsinh_plot(tgt_rot_sum-rot_conv_sum, stretch, im_label=label+'Residual, D - M', res=True, im_name = 'resid_sum_paper_rot_first'+extn, extent=extent_radec, scale_val=np.max(tgt_sum), x_ax_label='RA Offset (")', y_ax_label='Dec Offset (")', radec=True  )
-        arcsinh_plot(tgt_rot_sum[sz/2.-chi2_calc_hw:sz/2.+chi2_calc_hw,sz/2.-chi2_calc_hw:sz/2.+chi2_calc_hw]-rot_conv_sum[sz/2.-chi2_calc_hw:sz/2.+chi2_calc_hw,sz/2.-chi2_calc_hw:sz/2.+chi2_calc_hw], stretch, im_label=label+'Residual, D - M', res=True, im_name = 'resid_sum_paper_rot_first_crop'+extn, extent=extent_crop, scale_val=np.max(tgt_sum), x_ax_label='RA Offset (")', y_ax_label='Dec Offset (")', radec=True  )
+        arcsinh_plot(tgt_rot_sum[sz/2.-chi2_calc_hw:sz/2.+chi2_calc_hw,sz/2.-chi2_calc_hw:sz/2.+chi2_calc_hw]-rot_conv_sum[sz/2.-chi2_calc_hw:sz/2.+chi2_calc_hw,sz/2.-chi2_calc_hw:sz/2.+chi2_calc_hw], stretch, im_label=label+'Residual, D - M', res=True, im_name = 'resid_sum_paper_rot_first_crop'+extn, extent=extent_crop, scale_val=np.max(tgt_sum), x_ax_label='RA Offset (")', y_ax_label='Dec Offset (")', chi_crop=True)
         #plot a model image only rotated by the pa
         
         #arcsinh_plot(tgt_sum/model_sum, stretch, im_label=label+'Ratio, Target/Model', im_name = 'ratio_paper'+extn, extent=extent)#, scale_val=np.max(tgt_sum))        
@@ -576,7 +583,7 @@ def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_c
         cbar = plt.colorbar(pad=0.0)
         cbar.set_label('Model/Data',size=23)
         cbar.ax.tick_params(labelsize=18)
-        plt.text(0.6,0.6,label+'Ratio',color='black',ha='left',va='top',fontsize=23)
+        plt.text(0.4,0.4,label+'Ratio',color='black',ha='left',va='top',fontsize=23)
         plt.savefig('ratio_paper_rot_first_crop'+extn, bbox_inches='tight')
         plt.clf()
         
@@ -639,7 +646,7 @@ def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_c
         arcsinh_plot(rot_conv_sum[sz/2.-chi2_calc_hw:sz/2.+chi2_calc_hw,sz/2.-chi2_calc_hw:sz/2.+chi2_calc_hw],\
                      stretch, asinh_vmin=0, im_label=label+'Conv Model', \
                      im_name='rot_conv_sum_paper_crop'+extn, extent=extent_crop, \
-                     x_ax_label='RA Offset (")', y_ax_label='Dec Offset (")', radec=True)
+                     x_ax_label='RA Offset (")', y_ax_label='Dec Offset (")', chi_crop=True)
         arcsinh_plot(rot_resid_sum, stretch, im_label=label+'Residual, D - M', res=True, \
                      im_name = 'rot_resid_sum_paper'+extn, extent=extent_radec, scale_val=np.max(tgt_sum),\
                      x_ax_label='RA Offset (")', y_ax_label='Dec Offset (")', radec=True)  
