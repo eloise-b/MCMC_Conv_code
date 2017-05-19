@@ -137,20 +137,26 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     #Flip the target ims so 0,0 is in the bottom left, not the top left
     #Rotate the data so that you undo what the telescope rotation does, so that North is up and East is left
     tgt_ims = []
-    for i in range(target_ims.shape[0]):
-        f = np.flipud(target_ims[i])
-        #r = nd.interpolation.rotate(f, -pa_vert[i], reshape=False, order=1)
-        tgt_ims.append(f)
-    tgt_ims = np.asarray(tgt_ims)
+    if synth:
+        tgt_ims = np.asarray(target_ims)
+    else:
+        for i in range(target_ims.shape[0]):
+            f = np.flipud(target_ims[i])
+            #r = nd.interpolation.rotate(f, -pa_vert[i], reshape=False, order=1)
+            tgt_ims.append(f)
+        tgt_ims = np.asarray(tgt_ims)
    
     #Flip the cal ims so 0,0 is in the bottom left, not the top left
     #Rotate the data so that you undo what the telescope rotation does, so that North is up and East is left
     cal_ims = []
-    for i in range(calib_ims.shape[0]):
-        f = np.flipud(calib_ims[i])
-        #r = nd.interpolation.rotate(f, -pa_vert[i], reshape=False, order=1)
-        cal_ims.append(f)
-    cal_ims = np.asarray(cal_ims)
+    if synth:
+        cal_ims = np.asarray(calib_ims)
+    else:
+        for i in range(calib_ims.shape[0]):
+            f = np.flipud(calib_ims[i])
+            #r = nd.interpolation.rotate(f, -pa_vert[i], reshape=False, order=1)
+            cal_ims.append(f)
+        cal_ims = np.asarray(cal_ims)
     
     #Resample onto half pixel size and Fourier transform.
     #FIXME: This really *shouldn't* be done at every iteration of the Monte-Carlo loop!
