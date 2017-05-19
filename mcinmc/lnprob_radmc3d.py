@@ -43,7 +43,7 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     star_temp=9000.0, kappa = "['carbon']", Kurucz= True, plot_ims=False, save_im_data=False, \
     make_sed=False, data_sed_ratio = 8.672500426996962, sed_ratio_uncert=0.01, out_wall = 60., \
     out_dep = 1e-1, n_x = [5., 20., 30., 20., 40.], n_z = 60, n_y = [10,30,30,10], \
-    paper_ims=False, label='', north_ims=False, rotate_present = False,
+    paper_ims=False, label='', north_ims=False, rotate_present = False, synth=False,\
     kurucz_dir='/Users/mireland/theory/', background=None, empirical_background=True):
 #def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',nphot="long(4e4)",\
 #    nphot_scat="long(2e4)", remove_directory=True, star_r=2.0, star_m=2.0, planet_mass=0.001,\
@@ -101,6 +101,8 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
         depletion of the outer region
     label : string
         what you want written in the image
+    synth : boolean
+        are you using a syntheti data set?
     background : float
         background level in target images
     empirical_background : boolean (default True)
@@ -125,7 +127,10 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     
     #Get the pa information for the object from the fits file
     bintab = pyfits.getdata(filename,2)
-    pa_vert = bintab['pa'] 
+    if synth:
+        pa_vert = np.zeros(np.shape(target_ims)[0])
+    else:
+        pa_vert = bintab['pa'] 
     if not background:
         background = bintab['background'] 
     

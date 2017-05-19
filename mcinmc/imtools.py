@@ -331,7 +331,13 @@ def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_c
     #the chip pa to be used
     pa =[]
     for p in range(len(pa_vert)):
-        pa_c = pa_sky - pa_vert[p] + 360.
+        pa_chip = pa_sky - pa_vert[p]
+        if pa_chip <= 0.:
+            pa_c = pa_chip + 360.
+        elif pa_chip >= 360.:
+            pa_c = pa_chip - 360. 
+        else:
+             pa_c = pa_chip 
         #pa_c = pa_vert[p] + pa_sky -270.  
         pa.append(pa_c)
     #'''
@@ -368,7 +374,7 @@ def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_c
         arcsinh_plot(rot_model, mcmc_stretch, im_label=label+'Model', im_name='rot_im_paper'+extn, \
                      extent=extent_radec, x_ax_label='RA Offset (")', y_ax_label='Dec Offset (")',\
                      radec=True)
-        arcsinh_plot(rot_model[sz/2.-chi2_calc_hw:sz/2.+chi2_calc_hw,sz/2.-chi2_calc_hw:sz/2.+chi2_calc_hw],\
+        arcsinh_plot(rot_model[mod_sz/2.-2.*chi2_calc_hw:mod_sz/2.+2.*chi2_calc_hw,mod_sz/2.-2.*chi2_calc_hw:mod_sz/2.+2.*chi2_calc_hw],\
                      mcmc_stretch, im_label=label+'Model', im_name='rot_im_crop_paper'+extn, \
                      extent=extent_crop, x_ax_label='RA Offset (")', y_ax_label='Dec Offset (")',\
                      chi_crop=True)
@@ -534,7 +540,7 @@ def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_c
         arcsinh_plot(tgt_sum, stretch, asinh_vmin=0, im_label='Data', im_name='target_sum_paper_labelled'+extn, extent=extent)
         arcsinh_plot(tgt_sum, stretch, asinh_vmin=0, im_name='target_sum_paper'+extn, extent=extent)
         arcsinh_plot(tgt_match_rot_sum, stretch, asinh_vmin=0, im_name='target_match_rot_sum_paper'+extn, extent=extent)
-        arcsinh_plot(tgt_rot_sum, stretch, asinh_vmin=0, im_name='target_rot_sum_paper'+extn, extent=extent)
+        arcsinh_plot(tgt_rot_sum, stretch, asinh_vmin=0, im_label='Target', im_name='target_rot_sum_paper'+extn, extent=extent)
         arcsinh_plot(model_sum, stretch, asinh_vmin=0, im_label=label+'Conv Model', im_name='model_sum_paper'+extn, extent=extent)
         arcsinh_plot(tgt_sum-model_sum, stretch, im_label=label+'Residual, D - M', res=True, im_name = 'resid_sum_paper'+extn, extent=extent, scale_val=np.max(tgt_sum))
         arcsinh_plot(tgt_rot_sum-rot_conv_sum, stretch, im_label=label+'Residual, D - M', res=True, im_name = 'resid_sum_paper_rot_first'+extn, extent=extent_radec, scale_val=np.max(tgt_sum), x_ax_label='RA Offset (")', y_ax_label='Dec Offset (")', radec=True  )
