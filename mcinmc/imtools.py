@@ -255,7 +255,7 @@ def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_c
     model_chi_dir = '/Users/eloisebirchall/Documents/Uni/Masters/radmc-3d/IRS_48_grid/MCMC_stuff/',
     north_ims=False, rotate_present = False, bgnd=[360000.0], gain=4.0, rnoise=10.0, extn='.pdf',
     chi2_calc_hw=40, bgnd_cal=[360000.0], empirical_var=True, empirical_background=True,\
-    make_synth=False):
+    make_synth=False, filename=''):
     """Rotate a model image, and find the best fit. Output (for now!) 
     goes to file in the current directory.
     
@@ -306,6 +306,9 @@ def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_c
         Do we use an empirical calculation of the background level from edge pixels?
     make_synth : bool
         are you making a synthetic data set?
+    filename : str 
+        for when making synth data set, need to know where to get cals, header etc
+        
     Returns
     -------
     chi2:
@@ -478,11 +481,10 @@ def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_c
         
         #if making a synthetic data set, write out what is needed now
         if make_synth:
-            #filename = 'good_ims_HD167666.fits'
-            header = pyfits.getheader(filename,0)
+            header = pyfits.getheader('../'+filename,0)
             new_ims = np.array(ims_shifted)
-            cal_ims = np.array(pyfits.getdata(filename,1))
-            bintab = pyfits.getdata(filename,2)
+            cal_ims = np.array(pyfits.getdata('../'+filename,1))
+            bintab = pyfits.getdata('../'+filename,2)
             #Now save the file!
             hdu1 = pyfits.PrimaryHDU(new_ims, header)
             hdu2 = pyfits.ImageHDU(cal_ims)
