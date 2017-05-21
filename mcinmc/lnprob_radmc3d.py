@@ -43,7 +43,7 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     star_temp=9000.0, kappa = "['carbon']", Kurucz= True, plot_ims=False, save_im_data=False, \
     make_sed=False, data_sed_ratio = 8.672500426996962, sed_ratio_uncert=0.01, out_wall = 60., \
     out_dep = 1e-1, n_x = [5., 20., 30., 20., 40.], n_z = 60, n_y = [10,30,30,10], \
-    paper_ims=False, label='', north_ims=False, rotate_present = False, synth=False,\
+    paper_ims=False, label='', north_ims=False, rotate_present = False, synth=False, make_synth=False,\
     kurucz_dir='/Users/mireland/theory/', background=None, empirical_background=True):
 #def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',nphot="long(4e4)",\
 #    nphot_scat="long(2e4)", remove_directory=True, star_r=2.0, star_m=2.0, planet_mass=0.001,\
@@ -131,37 +131,41 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
         pa_vert = np.zeros(np.shape(target_ims)[0])
     else:
         pa_vert = bintab['pa'] 
+    
     if not background:
         background = bintab['background'] 
     
     #Flip the target ims so 0,0 is in the bottom left, not the top left
     #Rotate the data so that you undo what the telescope rotation does, so that North is up and East is left
     tgt_ims = []
-    if synth:
-        tgt_ims = np.asarray(target_ims)
-    else:
-        for i in range(target_ims.shape[0]):
-            f = np.flipud(target_ims[i])
-            #r = nd.interpolation.rotate(f, -pa_vert[i], reshape=False, order=1)
-            tgt_ims.append(f)
-        tgt_ims = np.asarray(tgt_ims)
+    #if synth:
+    #    tgt_ims = np.asarray(target_ims)
+    #else:
+    for i in range(target_ims.shape[0]):
+        f = np.flipud(target_ims[i])
+        #r = nd.interpolation.rotate(f, -pa_vert[i], reshape=False, order=1)
+        tgt_ims.append(f)
+    tgt_ims = np.asarray(tgt_ims)
    
     #Flip the cal ims so 0,0 is in the bottom left, not the top left
     #Rotate the data so that you undo what the telescope rotation does, so that North is up and East is left
     cal_ims = []
-    if synth:
-        cal_ims = np.asarray(calib_ims)
-    else:
-        for i in range(calib_ims.shape[0]):
-            f = np.flipud(calib_ims[i])
-            #r = nd.interpolation.rotate(f, -pa_vert[i], reshape=False, order=1)
-            cal_ims.append(f)
-        cal_ims = np.asarray(cal_ims)
+    #if synth:
+    #    cal_ims = np.asarray(calib_ims)
+    #else:
+    for i in range(calib_ims.shape[0]):
+        f = np.flipud(calib_ims[i])
+        #r = nd.interpolation.rotate(f, -pa_vert[i], reshape=False, order=1)
+        cal_ims.append(f)
+    cal_ims = np.asarray(cal_ims)
     
     #Resample onto half pixel size and Fourier transform.
     #FIXME: This really *shouldn't* be done at every iteration of the Monte-Carlo loop!
-    cal_ims_ft = ft_and_resample(cal_ims, empirical_background=empirical_background)
-    
+    if make_synth:
+        cal_ims_ft = ft_and_resample(tgt_ims, empirical_background=empirical_background)
+    else:
+        cal_ims_ft = ft_and_resample(cal_ims, empirical_background=empirical_background)
+
     #read in the star_only image for comparison
     imag_obj_star=r3.image.readImage('image_star.out') 
     im_star=imag_obj_star.image[:,:,0]
@@ -307,7 +311,7 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     #This line call Keck tools
     chi_tot = rotate_and_fit(im, pa_vert, params['pa_sky'],cal_ims_ft,tgt_ims, model_type, model_chi_txt,\
                plot_ims=plot_ims,save_im_data=save_im_data, make_sed=make_sed,paper_ims=paper_ims,\
-               label=label,north_ims=north_ims, rotate_present=rotate_present, bgnd=background)
+               label=label,north_ims=north_ims, rotate_present=rotate_present, bgnd=background, make_synth=make_synth)
     
     #This is "cd .."
     os.chdir(os.pardir)

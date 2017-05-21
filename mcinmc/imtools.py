@@ -254,7 +254,8 @@ def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_c
     preconvolve=True, pxscale=0.01, save_im_data=True, make_sed=True, paper_ims=False, label='',
     model_chi_dir = '/Users/eloisebirchall/Documents/Uni/Masters/radmc-3d/IRS_48_grid/MCMC_stuff/',
     north_ims=False, rotate_present = False, bgnd=[360000.0], gain=4.0, rnoise=10.0, extn='.pdf',
-    chi2_calc_hw=40, bgnd_cal=[360000.0], empirical_var=True, empirical_background=True):
+    chi2_calc_hw=40, bgnd_cal=[360000.0], empirical_var=True, empirical_background=True,\
+    make_synth=False):
     """Rotate a model image, and find the best fit. Output (for now!) 
     goes to file in the current directory.
     
@@ -303,7 +304,8 @@ def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_c
         Do we use an empirical calculation of target variance from edge pixels?
     empirical_background: bool (optonal) Default True
         Do we use an empirical calculation of the background level from edge pixels?
-    
+    make_synth : bool
+        are you making a synthetic data set?
     Returns
     -------
     chi2:
@@ -473,6 +475,20 @@ def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_c
             chi_squared[n,j] = np.sum( \
                 ((ims_shifted[j] - this_im)**2/pixel_var)\
                 [xypeak_tgt[0]-chi2_calc_hw:xypeak_tgt[0]+chi2_calc_hw,xypeak_tgt[1]-chi2_calc_hw:xypeak_tgt[1]+chi2_calc_hw] )
+        
+        #if making a synthetic data set, write out what is needed now
+        if make_synth:
+            #filename = 'good_ims_HD167666.fits'
+            header = pyfits.getheader(filename,0)
+            new_ims = np.array(ims_shifted)
+            cal_ims = np.array(pyfits.getdata(filename,1))
+            bintab = pyfits.getdata(filename,2)
+            #Now save the file!
+            hdu1 = pyfits.PrimaryHDU(new_ims, header)
+            hdu2 = pyfits.ImageHDU(cal_ims)
+            hdu3 = pyfits.BinTableHDU(bintab)
+            hdulist = pyfits.HDUList([hdu1,hdu2,hdu3])
+            hdulist.writeto('good_ims_synth.fits', clobber=True)
         
         #Find the best shifted calibrator image (convolved with model) and save this as the best model image for this target image.
         best_conv = np.argmin(chi_squared[n])
