@@ -57,7 +57,8 @@ def ft_and_resample(cal_ims, empirical_background=True):
 
 def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_name='arcsinh_im.png', \
     scale_val=None, im_label=None, res=False, north=False, angle=0., x_ax_label = 'Offset (")',\
-    y_ax_label = 'Offset (")', radec=False, chi_crop=False):
+    y_ax_label = 'Offset (")', radec=False, chi_crop=False, circle=False, circle_x=None, \
+    circle_y=None, circle_r=None):
     """A helper routine to make an arcsinh stretched image.
     
     Parameters
@@ -93,6 +94,10 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
     chi_crop: Boolean
         is the image one that is cropped for the region chi squared is calc'd in?
         chi crop and radec can't be at the same time
+    circle: Bool
+        true if you want to plot a circle on your image
+    circle_x,y,r: float
+        parameters for position and size of circle if circle is true
     """
     if not scale_val:
         scale_val = np.max(im)
@@ -156,6 +161,9 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
         plt.clf()   
     elif im_label:
         plt.clf()
+        if circle:
+            circle1 = plt.Circle((circle_x, circle_y), circle_r, color='yellow', fill=False)
+            plt.gcf().gca().add_artist(circle1)
         plt.imshow(stretched_im, interpolation='nearest',cmap=cm.cubehelix, extent=extent, vmin=vmin, vmax=vmax)
         plt.xticks(fontsize=18)
         plt.yticks(fontsize=18)        
@@ -183,8 +191,9 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
             plt.text(0.6,0.6,im_label,color='white',ha='left',va='top',fontsize=23)
         else:
             plt.text(-0.6,0.6,im_label,color='white',ha='left',va='top',fontsize=23)
-        plt.savefig(im_name, bbox_inches='tight')
-        plt.clf()
+        else:
+            plt.savefig(im_name, bbox_inches='tight')
+            plt.clf()
     elif north:
         #angle = pa_vert[8]*(np.pi/180)
         arrow_x1 = -0.4*np.sin(angle)
