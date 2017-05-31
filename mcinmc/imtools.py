@@ -191,9 +191,8 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
             plt.text(0.6,0.6,im_label,color='white',ha='left',va='top',fontsize=23)
         else:
             plt.text(-0.6,0.6,im_label,color='white',ha='left',va='top',fontsize=23)
-        else:
-            plt.savefig(im_name, bbox_inches='tight')
-            plt.clf()
+        plt.savefig(im_name, bbox_inches='tight')
+        plt.clf()
     elif north:
         #angle = pa_vert[8]*(np.pi/180)
         arrow_x1 = -0.4*np.sin(angle)
