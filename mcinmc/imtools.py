@@ -794,4 +794,3 @@ def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_c
     else:
         return total_chi
                          
-def plot_paper_ims():
