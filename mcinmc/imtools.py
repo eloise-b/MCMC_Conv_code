@@ -527,7 +527,7 @@ def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_c
         ratio_shift = np.roll(np.roll(ratio_ims[n], sz//2 - xypeak_tgt[0], axis=0), 
                                            sz//2 - xypeak_tgt[1], axis=1)
         rot_ratios[n] = nd.interpolation.rotate(ratio_shift, pa_vert[n], reshape=False, order=1)
-        #make sums of the shifted and rotated images
+        #make sums of the shifted and rotated images so that we can make figures of them later
         rot_conv_sum += rot_best_model_ims[n]
         rot_resid_sum += rot_residuals[n]
         rot_ratio_sum += rot_ratios[n]
@@ -569,6 +569,7 @@ def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_c
         arcsinh_plot(tgt_rot_sum, stretch, asinh_vmin=0, im_label='Target', im_name='target_rot_sum_paper'+extn, extent=extent)
         arcsinh_plot(model_sum, stretch, asinh_vmin=0, im_label=label+'Conv Model', im_name='model_sum_paper'+extn, extent=extent)
         arcsinh_plot(tgt_sum-model_sum, stretch, im_label=label+'Residual, D - M', res=True, im_name = 'resid_sum_paper'+extn, extent=extent, scale_val=np.max(tgt_sum))
+        #these 2 residuals have north up, but rotated first before making the residuals
         arcsinh_plot(tgt_rot_sum-rot_conv_sum, stretch, im_label=label+'Residual, D - M', res=True, im_name = 'resid_sum_paper_rot_first'+extn, extent=extent_radec, scale_val=np.max(tgt_sum), x_ax_label='RA Offset (")', y_ax_label='Dec Offset (")', radec=True  )
         arcsinh_plot(tgt_rot_sum[sz/2.-chi2_calc_hw:sz/2.+chi2_calc_hw,sz/2.-chi2_calc_hw:sz/2.+chi2_calc_hw]-rot_conv_sum[sz/2.-chi2_calc_hw:sz/2.+chi2_calc_hw,sz/2.-chi2_calc_hw:sz/2.+chi2_calc_hw], stretch, im_label=label+'Residual, D - M', res=True, im_name = 'resid_sum_paper_rot_first_crop'+extn, extent=extent_crop, scale_val=np.max(tgt_sum), x_ax_label='RA Offset (")', y_ax_label='Dec Offset (")', chi_crop=True)
         #plot a model image only rotated by the pa
@@ -596,6 +597,7 @@ def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_c
         plt.text(-0.6,0.6,label+'Ratio',color='black',ha='left',va='top',fontsize=23)
         plt.savefig('ratio_paper_2'+extn, bbox_inches='tight')
         plt.clf()
+        #these 2 ratios have north up, but rotated first before making the ratios
         plt.imshow(rot_conv_sum/tgt_rot_sum, interpolation='nearest', extent=extent_radec, cmap=cm.PiYG, vmin=0., vmax=2.)
         plt.xticks(fontsize=18)
         plt.yticks(fontsize=18)      
@@ -620,7 +622,7 @@ def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_c
         plt.clf()
         
     if north_ims:
-        #images with arrows on them:
+        #images with arrows on them, but not rotated so north is up
         for i in range(ntgt):
             angle = pa_vert[i]*(np.pi/180)
             north_name = 'target_north_'+str(i)+extn
@@ -652,6 +654,7 @@ def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_c
 #             rot_resid_sum += rot_residuals[i]
 #             rot_ratio_sum += rot_ratios[i]
         
+        #Make pickle files of the rotated (to north up) images
         res_file = open('rot_res_ims.pkl','w')
         pickle.dump(rot_residuals,res_file)
         res_file.close()
@@ -672,6 +675,7 @@ def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_c
         pickle.dump(rot_conv_sum,conv_file)
         conv_file.close()
         
+        #plot images with north up rot_conv_sum_paper and crop are those used for presentation
         arcsinh_plot(rot_conv_sum, stretch, asinh_vmin=0, im_label=label+'Conv Model', \
                      im_name='rot_conv_sum_paper'+extn, extent=extent_radec, \
                      x_ax_label='RA Offset (")', y_ax_label='Dec Offset (")', radec=True)
@@ -743,15 +747,15 @@ def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_c
         #rot_mod_file = open('rot_mod.pkl','w')
         #pickle.dump(rotated_image,rot_mod_file)
         #rot_mod_file.close()
-    
+   
     if make_sed:
         #SED stuff
         os.system('radmc3d sed')
         #os.system('radmc3d sed incl 55.57 phi 130.1')  
         #os.system('radmc3d spectrum loadlambda incl 55.57 phi 130.1')           
-        
+       
         spec = np.loadtxt('spectrum.out', skiprows=3)
-        
+       
         #Plot the SED
         #define c in microns
         c = 2.99792458*(10**10)
@@ -766,7 +770,7 @@ def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_c
         name = 'SED'+extn
         plt.savefig(name)
         plt.clf()
-        
+       
     
     #TESTING: save best_chi2s and PSFs.
     #np.savetxt('best_chi2s.txt', best_chi2s)
@@ -790,3 +794,4 @@ def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_c
     else:
         return total_chi
                          
+def plot_paper_ims():
