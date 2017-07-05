@@ -23,14 +23,17 @@ import pdb
 import os
 from os.path import exists
 import pickle
+#--- SUBPIXEL ---
+import psf_marginalise as pm
+
 #from image_script import *
 #Have plt.ion commented out so that the code doesn't generate the image windows and just 
 #writes the images directly to file, this should make the code run for a shorter time
 #plt.ion()
 
-def ft_and_resample(cal_ims, empirical_background=True):
+def ft_and_resample(cal_ims, empirical_background=True, resample=True):
     """Create the Fourier transform of a set of images, resampled onto half the
-    pixel scale """
+    pixel scale if resample is set to True. """
     #Number of images
     ncal = cal_ims.shape[0] #Number of calibrator images.
  
@@ -44,15 +47,22 @@ def ft_and_resample(cal_ims, empirical_background=True):
 
     #This should come from a library! but to see details, lets do it manually.
     #do the fast fourier transform of the psfs
-    cal_ims_ft = np.zeros( (ncal,sz*2,sz+1),dtype=np.complex )
+    if resample:
+        cal_ims_ft = np.zeros( (ncal,sz*2,sz+1),dtype=np.complex )
+    else:
+        cal_ims_ft = np.zeros( (ncal,sz,sz//2+1),dtype=np.complex )
+    
     for j in range(ncal):
         if empirical_background:
             this_im = cal_ims[j] - np.median(cal_ims[j][outer_pix])
         else:
             this_im = cal_ims[j]
         cal_im_ft_noresamp = np.fft.rfft2(this_im)
-        cal_ims_ft[j,0:sz//2,0:sz//2+1] = cal_im_ft_noresamp[0:sz//2,0:sz//2+1]
-        cal_ims_ft[j,-sz//2:,0:sz//2+1] = cal_im_ft_noresamp[-sz//2:,0:sz//2+1]
+        if resample:
+            cal_ims_ft[j,0:sz//2,0:sz//2+1] = cal_im_ft_noresamp[0:sz//2,0:sz//2+1]
+            cal_ims_ft[j,-sz//2:,0:sz//2+1] = cal_im_ft_noresamp[-sz//2:,0:sz//2+1]
+        else:
+            cal_ims_ft[j] = cal_im_ft_noresamp
     return cal_ims_ft
 
 def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_name='arcsinh_im.png', \
@@ -247,7 +257,8 @@ def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_c
     preconvolve=True, pxscale=0.01, save_im_data=True, make_sed=True, paper_ims=False, label='',
     model_chi_dir = '/Users/eloisebirchall/Documents/Uni/Masters/radmc-3d/IRS_48_grid/MCMC_stuff/',
     north_ims=False, rotate_present = False, bgnd=[360000.0], gain=4.0, rnoise=10.0, extn='.pdf',
-    chi2_calc_hw=40, bgnd_cal=[360000.0], empirical_var=True, empirical_background=True):
+    chi2_calc_hw=40, bgnd_cal=[360000.0], empirical_var=True, empirical_background=True,
+    wave_min=3.5e-6, diam=10.0):
     """Rotate a model image, and find the best fit. Output (for now!) 
     goes to file in the current directory.
     
@@ -340,17 +351,22 @@ def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_c
     #Since the model image only needs to be rotated once, this loop is no longer relevant
     # Do the rotation Corresponding to the position angle input.  
     rotated_ims = []
-    rotated_ims_ft = []
+    rotated_image_ft = np.zeros((ntgt,sz,sz//2+1), dtype=complex)
     for i in range(ntgt):
         rotated_image = nd.interpolation.rotate(im, pa[i], reshape=False, order=1)
         if plot_ims:
             arcsinh_plot(rotated_image, mcmc_stretch, im_name='mcmc_im_'+str(i)+extn, extent=extent)
         rotated_image = rotated_image[mod_sz//2 - sz:mod_sz//2 + sz,mod_sz//2 - sz:mod_sz//2 + sz]
-        rotated_image_ft = np.fft.rfft2(np.fft.fftshift(rotated_image))
-        rotated_ims.append(rotated_image)
-        rotated_ims_ft.append(rotated_image_ft)
+        rotated_ims.append(rotated_image)        
+        #---  SUBPIXEL ---
+        # Find the Fourier transform of this image, then return the array size to the 
+        # same as the target images. Note that this will only work, if mod_sz is
+        # greater than sz.
+        ft_subpixel = np.fft.rfft2(np.fft.fftshift(rotated_image))
+        rotated_image_ft[i,0:sz//2,0:sz//2+1] = ft_subpixel[0:sz//2,0:sz//2+1]
+        rotated_image_ft[i,-sz//2:,0:sz//2+1] = ft_subpixel[-sz//2:,0:sz//2+1]
+
     rotated_image = np.array(rotated_ims)
-    rotated_image_ft = np.array(rotated_ims_ft)
     if plot_ims:
         arcsinh_plot(np.average(rotated_image, axis=0), mcmc_stretch, im_name='rot_im'+extn, extent=extent)
     if paper_ims:
@@ -404,6 +420,13 @@ def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_c
     rot_conv_sum = np.zeros( (sz,sz) )
     rot_resid_sum = np.zeros( (sz,sz) )
     rot_ratio_sum = np.zeros( (sz,sz) )
+    
+    #--- SUBPIXEL ---
+    #Pre-compute target Fourier transforms and our UV grid.
+    sampled_uv, uv = pm.make_uv_grid(sz, diam, wave_min, pxscale)
+    tgt_ims_ft = ft_and_resample(tgt_ims, empirical_background=empirical_background, resample=False)
+    mod_im_ft = np.zeros_like(tgt_ims_ft[0])
+    
     for n in range(ntgt):
         ims_shifted = np.empty( (ncal,sz,sz) )
         #Find the peak for the target
@@ -435,26 +458,25 @@ def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_c
             #Compute the pixel variance.
             pixel_var = (np.maximum(this_im,0) + np.maximum(bgnd[n],0) + rnoise**2)/gain 
         
-        conv_ims = np.empty( (ncal,2*sz,2*sz) )
         for j in range(ncal):
-            conv_ims[j,:,:] = np.fft.irfft2(cal_ims_ft[j]*rotated_image_ft[n])
-            #Do a dodgy shift to the peak.
-            xypeak_conv = np.argmax(conv_ims[j])
-            xypeak_conv = np.unravel_index(xypeak_conv, conv_ims[j].shape)
+            #--- SUBPIXEL ---
+            ftim = cal_ims_ft[j][sampled_uv]*rotated_image_ft[n][sampled_uv]
+            #Find the required tilt in pixels.
+            tilt = pm.optimize_tilt(ftim, tgt_ims_ft[n][sampled_uv], uv, scale_flux=True)
             
-            #Shift this oversampled image to the middle.
-            bigim_shifted = np.roll(np.roll(conv_ims[j],2*xypeak_tgt[0]-xypeak_conv[0],axis=0),2*xypeak_tgt[1]-xypeak_conv[1],axis=1)
-            
-            #Rebin the image.
-            ims_shifted[j] = ot.rebin(bigim_shifted,(sz,sz))
-            
+            #Compute the tilted convolved model at the sampled_uv points
+            sampled_mod_ft = pm.optimize_tilt_function(tilt, ftim, None, uv, return_model=True)
+            mod_im_ft[sampled_uv] = sampled_mod_ft
+            ims_shifted[j] = np.fft.irfft2(mod_im_ft)
+    
             #Normalise the image
             ims_shifted[j] *= np.sum(this_im)/np.sum(ims_shifted[j])
-                        
+                                       
             #Now compute the chi-squared!
             chi_squared[n,j] = np.sum( \
                 ((ims_shifted[j] - this_im)**2/pixel_var)\
                 [xypeak_tgt[0]-chi2_calc_hw:xypeak_tgt[0]+chi2_calc_hw,xypeak_tgt[1]-chi2_calc_hw:xypeak_tgt[1]+chi2_calc_hw] )
+                
         
         #Find the best shifted calibrator image (convolved with model) and save this as the best model image for this target image.
         best_conv = np.argmin(chi_squared[n])

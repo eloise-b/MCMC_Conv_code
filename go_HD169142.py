@@ -3,9 +3,9 @@ import multiprocessing
 import numpy as np
 import emcee
 import pickle
-from lnprob_radmc3d import *
-import pdb
+from mcinmc.lnprob_radmc3d import *
 import radmc3dPy as r3
+import pdb
 
 multiprocess=True
 follow=True
@@ -32,14 +32,14 @@ ipar = np.array([np.log(5.10e-4), #Dust to gas
                  np.log(7327.0),   #Stellar temperature (8250 from Yeon Seok 2015)
                  0.0,0.0,0.0])     #Planet x, y, radius
 '''                 
-ipar = np.array([np.log(5.10e-4), #Dust to gas
-                 np.log(2.24e-3), #inner disc Gap Depletion
-                 np.log(2.24e-3), #Gap Depletion
-                 np.log(0.2), # dust sublimation radius
-                 np.log(12.44),     #Inner Radius (AU)
-                 np.log(25.0),     #Wall Radius (AU)
-                 28.7,               #Inclination
-                 133.4,               #Position Angle
+ipar = np.array([np.log(6.36e-3), #Dust to gas
+                 np.log(1.16e-4), #inner disc Gap Depletion
+                 np.log(6.41e-4), #Gap Depletion
+                 np.log(0.17), # dust sublimation radius
+                 np.log(2.39),     #Inner Radius (AU)
+                 np.log(11.9),     #Wall Radius (AU)
+                 31.2,               #Inclination
+                 4.66,               #Position Angle
                  0.0,0.0,          #Star position offset (AU)
                  0.0,0.0,0.0])     #Planet x, y, radius.
 
@@ -63,11 +63,11 @@ ipar = np.array([np.log(5.10e-4), #Dust to gas
 #         1.00000000e+00,   1.00000000e+00,   1.00000000e+00])
 
 #mode='test'
-mode='mcmc'
-#mode='plot'
-kwargs = {"planet_temp":2000,"temperature":10000,"filename":"HD169142_2014_ims.fits","dist":145,\
+#mode='mcmc'
+mode='plot'
+kwargs = {"planet_temp":2000,"temperature":10000,"filename":"HD169142_2014_ims.fits","dist":117,\
           "data_sed_ratio":6.973494765305826, "star_r":1.6, "star_m":1.65, "mdisk":1.e-3, "star_temp":8250,\
-          "kappa":"['56e-3_pah']","Kurucz":True,"out_wall":70., "out_dep":1e-1, "sed_ratio_uncert":0.001}
+          "kappa":"['56e-3_pah']","Kurucz":True,"out_wall":54., "out_dep":1e-1, "sed_ratio_uncert":0.001}
 
 #A test code block to see the effect of changing one parameter at a time.
 if mode=='test':
@@ -85,7 +85,7 @@ if mode=='test':
         #Examine our initial model...
         lnprob[i] = lnprob_conv_disk_radmc3d(ipar_test, remove_directory=False, **kwargs)
 elif mode=='plot':
-    lnprob = lnprob_conv_disk_radmc3d(ipar, remove_directory=False, plot_ims=True, **kwargs)
+    lnprob = lnprob_conv_disk_radmc3d(ipar, remove_directory=False, plot_ims=True, paper_ims=True, **kwargs)
 elif mode=='mcmc':
     ipar_sig = np.array([.1,.1,.1,.1,.1,.1,1,5,0.0,0.0,0.,0.,0.0])
     ndim = len(ipar)

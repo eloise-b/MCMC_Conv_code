@@ -148,7 +148,7 @@ def lnprob_conv_disk_radmc3d(x, temperature=10000.0, filename='good_ims.fits',np
     
     #Resample onto half pixel size and Fourier transform.
     #FIXME: This really *shouldn't* be done at every iteration of the Monte-Carlo loop!
-    cal_ims_ft = ft_and_resample(cal_ims, empirical_background=empirical_background)
+    cal_ims_ft = ft_and_resample(cal_ims, empirical_background=empirical_background, resample=False)
     
     #read in the star_only image for comparison
     imag_obj_star=r3.image.readImage('image_star.out') 
