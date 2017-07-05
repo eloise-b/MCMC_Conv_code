@@ -67,7 +67,8 @@ def ft_and_resample(cal_ims, empirical_background=True, resample=True):
 
 def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_name='arcsinh_im.png', \
     scale_val=None, im_label=None, res=False, north=False, angle=0., x_ax_label = 'Offset (")',\
-    y_ax_label = 'Offset (")', radec=False):
+    y_ax_label = 'Offset (")', radec=False, chi_crop=False, circle=False, circle_x=None, \
+    circle_y=None, circle_r=None):
     """A helper routine to make an arcsinh stretched image.
     
     Parameters
@@ -100,6 +101,13 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
         what you want the label on the x axis to be
     y_ax_label: string
         what you want the label on the y axis to be  
+    chi_crop: Boolean
+        is the image one that is cropped for the region chi squared is calc'd in?
+        chi crop and radec can't be at the same time
+    circle: Bool
+        true if you want to plot a circle on your image
+    circle_x,y,r: float
+        parameters for position and size of circle if circle is true
     """
     if not scale_val:
         scale_val = np.max(im)
@@ -149,7 +157,9 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
             fmt_string = "{0:5.2f}"
         cbar.ax.set_yticklabels([fmt_string.format(y) for y in stretch*np.sinh(ticks)])
         cbar.ax.tick_params(labelsize=18)
-        if radec:
+        if chi_crop:
+            plt.text(0.4,0.4,im_label,color='white',ha='left',va='top',fontsize=23)
+        elif radec:
             plt.text(0.6,0.6,im_label,color='white',ha='left',va='top',fontsize=23)
         else:
             plt.text(-0.6,0.6,im_label,color='white',ha='left',va='top',fontsize=23)
@@ -161,6 +171,9 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
         plt.clf()   
     elif im_label:
         plt.clf()
+        if circle:
+            circle1 = plt.Circle((circle_x, circle_y), circle_r, color='yellow', fill=False)
+            plt.gcf().gca().add_artist(circle1)
         plt.imshow(stretched_im, interpolation='nearest',cmap=cm.cubehelix, extent=extent, vmin=vmin, vmax=vmax)
         plt.xticks(fontsize=18)
         plt.yticks(fontsize=18)        
@@ -182,7 +195,9 @@ def arcsinh_plot(im, stretch, asinh_vmax=None, asinh_vmin=None, extent=None, im_
             fmt_string = "{0:5.2f}"
         cbar.ax.set_yticklabels([fmt_string.format(y) for y in stretch*np.sinh(ticks)])
         cbar.ax.tick_params(labelsize=18)
-        if radec:
+        if chi_crop:
+            plt.text(0.4,0.4,im_label,color='white',ha='left',va='top',fontsize=23)
+        elif radec:
             plt.text(0.6,0.6,im_label,color='white',ha='left',va='top',fontsize=23)
         else:
             plt.text(-0.6,0.6,im_label,color='white',ha='left',va='top',fontsize=23)
@@ -257,8 +272,8 @@ def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_c
     preconvolve=True, pxscale=0.01, save_im_data=True, make_sed=True, paper_ims=False, label='',
     model_chi_dir = '/Users/eloisebirchall/Documents/Uni/Masters/radmc-3d/IRS_48_grid/MCMC_stuff/',
     north_ims=False, rotate_present = False, bgnd=[360000.0], gain=4.0, rnoise=10.0, extn='.pdf',
-    chi2_calc_hw=40, bgnd_cal=[360000.0], empirical_var=True, empirical_background=True,
-    wave_min=3.5e-6, diam=10.0):
+    chi2_calc_hw=40, bgnd_cal=[360000.0], empirical_var=True, empirical_background=True,\
+    make_synth=False, filename='', wave_min=3.5e-6, diam=10.0):
     """Rotate a model image, and find the best fit. Output (for now!) 
     goes to file in the current directory.
     
@@ -307,7 +322,11 @@ def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_c
         Do we use an empirical calculation of target variance from edge pixels?
     empirical_background: bool (optonal) Default True
         Do we use an empirical calculation of the background level from edge pixels?
-    
+    make_synth : bool
+        are you making a synthetic data set?
+    filename : str 
+        for when making synth data set, need to know where to get cals, header etc
+        
     Returns
     -------
     chi2:
@@ -319,6 +338,8 @@ def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_c
     ncal = cal_ims_ft.shape[0]
     extent = [-pxscale*sz/2, pxscale*sz/2, -pxscale*sz/2, pxscale*sz/2]
     extent_radec = [pxscale*sz/2, -pxscale*sz/2, -pxscale*sz/2, pxscale*sz/2]
+    crop_scale = sz-chi2_calc_hw
+    extent_crop = [pxscale*crop_scale/2, -pxscale*crop_scale/2, -pxscale*crop_scale/2, pxscale*crop_scale/2]
     stretch=0.01
     mcmc_stretch=1e-4
     
@@ -333,7 +354,13 @@ def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_c
     #the chip pa to be used
     pa =[]
     for p in range(len(pa_vert)):
-        pa_c = pa_sky - pa_vert[p] + 360.
+        pa_chip = pa_sky - pa_vert[p]
+        if pa_chip <= 0.:
+            pa_c = pa_chip + 360.
+        elif pa_chip >= 360.:
+            pa_c = pa_chip - 360. 
+        else:
+             pa_c = pa_chip 
         #pa_c = pa_vert[p] + pa_sky -270.  
         pa.append(pa_c)
     #'''
@@ -375,7 +402,10 @@ def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_c
         arcsinh_plot(rot_model, mcmc_stretch, im_label=label+'Model', im_name='rot_im_paper'+extn, \
                      extent=extent_radec, x_ax_label='RA Offset (")', y_ax_label='Dec Offset (")',\
                      radec=True)
-        
+        arcsinh_plot(rot_model[mod_sz/2.-2.*chi2_calc_hw:mod_sz/2.+2.*chi2_calc_hw,mod_sz/2.-2.*chi2_calc_hw:mod_sz/2.+2.*chi2_calc_hw],\
+                     mcmc_stretch, im_label=label+'Model', im_name='rot_im_crop_paper'+extn, \
+                     extent=extent_crop, x_ax_label='RA Offset (")', y_ax_label='Dec Offset (")',\
+                     chi_crop=True)
     '''
     
     #do the rotation of the image for the sky pa
@@ -478,6 +508,19 @@ def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_c
                 [xypeak_tgt[0]-chi2_calc_hw:xypeak_tgt[0]+chi2_calc_hw,xypeak_tgt[1]-chi2_calc_hw:xypeak_tgt[1]+chi2_calc_hw] )
                 
         
+        #if making a synthetic data set, write out what is needed now
+        if make_synth:
+            header = pyfits.getheader('../'+filename,0)
+            new_ims = np.array(ims_shifted)
+            cal_ims = np.array(pyfits.getdata('../'+filename,1))
+            bintab = pyfits.getdata('../'+filename,2)
+            #Now save the file!
+            hdu1 = pyfits.PrimaryHDU(new_ims, header)
+            hdu2 = pyfits.ImageHDU(cal_ims)
+            hdu3 = pyfits.BinTableHDU(bintab)
+            hdulist = pyfits.HDUList([hdu1,hdu2,hdu3])
+            hdulist.writeto('good_ims_synth.fits', clobber=True)
+        
         #Find the best shifted calibrator image (convolved with model) and save this as the best model image for this target image.
         best_conv = np.argmin(chi_squared[n])
         best_chi2s[n] = chi_squared[n,best_conv]
@@ -505,7 +548,7 @@ def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_c
         ratio_shift = np.roll(np.roll(ratio_ims[n], sz//2 - xypeak_tgt[0], axis=0), 
                                            sz//2 - xypeak_tgt[1], axis=1)
         rot_ratios[n] = nd.interpolation.rotate(ratio_shift, pa_vert[n], reshape=False, order=1)
-        #make sums of the shifted and rotated images
+        #make sums of the shifted and rotated images so that we can make figures of them later
         rot_conv_sum += rot_best_model_ims[n]
         rot_resid_sum += rot_residuals[n]
         rot_ratio_sum += rot_ratios[n]
@@ -544,10 +587,12 @@ def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_c
         arcsinh_plot(tgt_sum, stretch, asinh_vmin=0, im_label='Data', im_name='target_sum_paper_labelled'+extn, extent=extent)
         arcsinh_plot(tgt_sum, stretch, asinh_vmin=0, im_name='target_sum_paper'+extn, extent=extent)
         arcsinh_plot(tgt_match_rot_sum, stretch, asinh_vmin=0, im_name='target_match_rot_sum_paper'+extn, extent=extent)
-        arcsinh_plot(tgt_rot_sum, stretch, asinh_vmin=0, im_name='target_rot_sum_paper'+extn, extent=extent)
+        arcsinh_plot(tgt_rot_sum, stretch, asinh_vmin=0, im_label='Target', im_name='target_rot_sum_paper'+extn, extent=extent)
         arcsinh_plot(model_sum, stretch, asinh_vmin=0, im_label=label+'Conv Model', im_name='model_sum_paper'+extn, extent=extent)
         arcsinh_plot(tgt_sum-model_sum, stretch, im_label=label+'Residual, D - M', res=True, im_name = 'resid_sum_paper'+extn, extent=extent, scale_val=np.max(tgt_sum))
+        #these 2 residuals have north up, but rotated first before making the residuals
         arcsinh_plot(tgt_rot_sum-rot_conv_sum, stretch, im_label=label+'Residual, D - M', res=True, im_name = 'resid_sum_paper_rot_first'+extn, extent=extent_radec, scale_val=np.max(tgt_sum), x_ax_label='RA Offset (")', y_ax_label='Dec Offset (")', radec=True  )
+        arcsinh_plot(tgt_rot_sum[sz/2.-chi2_calc_hw:sz/2.+chi2_calc_hw,sz/2.-chi2_calc_hw:sz/2.+chi2_calc_hw]-rot_conv_sum[sz/2.-chi2_calc_hw:sz/2.+chi2_calc_hw,sz/2.-chi2_calc_hw:sz/2.+chi2_calc_hw], stretch, im_label=label+'Residual, D - M', res=True, im_name = 'resid_sum_paper_rot_first_crop'+extn, extent=extent_crop, scale_val=np.max(tgt_sum), x_ax_label='RA Offset (")', y_ax_label='Dec Offset (")', chi_crop=True)
         #plot a model image only rotated by the pa
         
         #arcsinh_plot(tgt_sum/model_sum, stretch, im_label=label+'Ratio, Target/Model', im_name = 'ratio_paper'+extn, extent=extent)#, scale_val=np.max(tgt_sum))        
@@ -573,6 +618,7 @@ def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_c
         plt.text(-0.6,0.6,label+'Ratio',color='black',ha='left',va='top',fontsize=23)
         plt.savefig('ratio_paper_2'+extn, bbox_inches='tight')
         plt.clf()
+        #these 2 ratios have north up, but rotated first before making the ratios
         plt.imshow(rot_conv_sum/tgt_rot_sum, interpolation='nearest', extent=extent_radec, cmap=cm.PiYG, vmin=0., vmax=2.)
         plt.xticks(fontsize=18)
         plt.yticks(fontsize=18)      
@@ -584,9 +630,20 @@ def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_c
         plt.text(0.6,0.6,label+'Ratio',color='black',ha='left',va='top',fontsize=23)
         plt.savefig('ratio_paper_rot_first'+extn, bbox_inches='tight')
         plt.clf()
-    
+        plt.imshow(rot_conv_sum[sz/2.-chi2_calc_hw:sz/2.+chi2_calc_hw,sz/2.-chi2_calc_hw:sz/2.+chi2_calc_hw]/tgt_rot_sum[sz/2.-chi2_calc_hw:sz/2.+chi2_calc_hw,sz/2.-chi2_calc_hw:sz/2.+chi2_calc_hw], interpolation='nearest', extent=extent_crop, cmap=cm.PiYG, vmin=0., vmax=2.)
+        plt.xticks(fontsize=18)
+        plt.yticks(fontsize=18)      
+        plt.xlabel('RA Offset (")',fontsize=23)
+        plt.ylabel('Dec Offset (")',fontsize=23)
+        cbar = plt.colorbar(pad=0.0)
+        cbar.set_label('Model/Data',size=23)
+        cbar.ax.tick_params(labelsize=18)
+        plt.text(0.4,0.4,label+'Ratio',color='black',ha='left',va='top',fontsize=23)
+        plt.savefig('ratio_paper_rot_first_crop'+extn, bbox_inches='tight')
+        plt.clf()
+        
     if north_ims:
-        #images with arrows on them:
+        #images with arrows on them, but not rotated so north is up
         for i in range(ntgt):
             angle = pa_vert[i]*(np.pi/180)
             north_name = 'target_north_'+str(i)+extn
@@ -618,6 +675,7 @@ def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_c
 #             rot_resid_sum += rot_residuals[i]
 #             rot_ratio_sum += rot_ratios[i]
         
+        #Make pickle files of the rotated (to north up) images
         res_file = open('rot_res_ims.pkl','w')
         pickle.dump(rot_residuals,res_file)
         res_file.close()
@@ -638,9 +696,14 @@ def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_c
         pickle.dump(rot_conv_sum,conv_file)
         conv_file.close()
         
+        #plot images with north up rot_conv_sum_paper and crop are those used for presentation
         arcsinh_plot(rot_conv_sum, stretch, asinh_vmin=0, im_label=label+'Conv Model', \
                      im_name='rot_conv_sum_paper'+extn, extent=extent_radec, \
                      x_ax_label='RA Offset (")', y_ax_label='Dec Offset (")', radec=True)
+        arcsinh_plot(rot_conv_sum[sz/2.-chi2_calc_hw:sz/2.+chi2_calc_hw,sz/2.-chi2_calc_hw:sz/2.+chi2_calc_hw],\
+                     stretch, asinh_vmin=0, im_label=label+'Conv Model', \
+                     im_name='rot_conv_sum_paper_crop'+extn, extent=extent_crop, \
+                     x_ax_label='RA Offset (")', y_ax_label='Dec Offset (")', chi_crop=True)
         arcsinh_plot(rot_resid_sum, stretch, im_label=label+'Residual, D - M', res=True, \
                      im_name = 'rot_resid_sum_paper'+extn, extent=extent_radec, scale_val=np.max(tgt_sum),\
                      x_ax_label='RA Offset (")', y_ax_label='Dec Offset (")', radec=True)  
@@ -705,15 +768,15 @@ def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_c
         #rot_mod_file = open('rot_mod.pkl','w')
         #pickle.dump(rotated_image,rot_mod_file)
         #rot_mod_file.close()
-    
+   
     if make_sed:
         #SED stuff
         os.system('radmc3d sed')
         #os.system('radmc3d sed incl 55.57 phi 130.1')  
         #os.system('radmc3d spectrum loadlambda incl 55.57 phi 130.1')           
-        
+       
         spec = np.loadtxt('spectrum.out', skiprows=3)
-        
+       
         #Plot the SED
         #define c in microns
         c = 2.99792458*(10**10)
@@ -728,7 +791,7 @@ def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_c
         name = 'SED'+extn
         plt.savefig(name)
         plt.clf()
-        
+       
     
     #TESTING: save best_chi2s and PSFs.
     #np.savetxt('best_chi2s.txt', best_chi2s)
