@@ -382,6 +382,7 @@ def lnprior(x, out_wall):
        0. <= params['inc'] <= 360. and \
        0. <= params['pa_sky'] <= 360. and \
        np.sqrt(params['star_x']**2+params['star_y']**2) <= 1. and \
+       np.sqrt(params['planet_x']**2+params['planet_y']**2) <= 50. and \
        (params['planet_r'] == 0. or params['planet_r'] > 0.02):
 #       params['r_in'] < params['r_wall'] and params['r_wall'] < out_wall and 
 #       params['r_wall'] > params['r_in']+0.1 and params['r_dust'] < params['r_in'] and 
