@@ -700,7 +700,7 @@ def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_c
         arcsinh_plot(rot_conv_sum, stretch, asinh_vmin=0, im_label=label+'Conv Model', \
                      im_name='rot_conv_sum_paper'+extn, extent=extent_radec, \
                      x_ax_label='RA Offset (")', y_ax_label='Dec Offset (")', radec=True)
-        arcsinh_plot(rot_conv_sum[sz/2.-chi2_calc_hw:sz/2.+chi2_calc_hw,sz/2.-chi2_calc_hw:sz/2.+chi2_calc_hw],\
+        arcsinh_plot(rot_conv_sum[sz//2-chi2_calc_hw:sz//2+chi2_calc_hw,sz//2-chi2_calc_hw:sz//2+chi2_calc_hw],\
                      stretch, asinh_vmin=0, im_label=label+'Conv Model', \
                      im_name='rot_conv_sum_paper_crop'+extn, extent=extent_crop, \
                      x_ax_label='RA Offset (")', y_ax_label='Dec Offset (")', chi_crop=True)
