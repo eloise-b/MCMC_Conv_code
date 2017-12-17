@@ -402,7 +402,7 @@ def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_c
         arcsinh_plot(rot_model, mcmc_stretch, im_label=label+'Model', im_name='rot_im_paper'+extn, \
                      extent=extent_radec, x_ax_label='RA Offset (")', y_ax_label='Dec Offset (")',\
                      radec=True)
-        arcsinh_plot(rot_model[mod_sz/2.-2.*chi2_calc_hw:mod_sz/2.+2.*chi2_calc_hw,mod_sz/2.-2.*chi2_calc_hw:mod_sz/2.+2.*chi2_calc_hw],\
+        arcsinh_plot(rot_model[mod_sz//2-2*chi2_calc_hw:mod_sz//2+2*chi2_calc_hw,mod_sz//2-2*chi2_calc_hw:mod_sz//2+2*chi2_calc_hw],\
                      mcmc_stretch, im_label=label+'Model', im_name='rot_im_crop_paper'+extn, \
                      extent=extent_crop, x_ax_label='RA Offset (")', y_ax_label='Dec Offset (")',\
                      chi_crop=True)
@@ -592,7 +592,7 @@ def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_c
         arcsinh_plot(tgt_sum-model_sum, stretch, im_label=label+'Residual, D - M', res=True, im_name = 'resid_sum_paper'+extn, extent=extent, scale_val=np.max(tgt_sum))
         #these 2 residuals have north up, but rotated first before making the residuals
         arcsinh_plot(tgt_rot_sum-rot_conv_sum, stretch, im_label=label+'Residual, D - M', res=True, im_name = 'resid_sum_paper_rot_first'+extn, extent=extent_radec, scale_val=np.max(tgt_sum), x_ax_label='RA Offset (")', y_ax_label='Dec Offset (")', radec=True  )
-        arcsinh_plot(tgt_rot_sum[sz/2.-chi2_calc_hw:sz/2.+chi2_calc_hw,sz/2.-chi2_calc_hw:sz/2.+chi2_calc_hw]-rot_conv_sum[sz/2.-chi2_calc_hw:sz/2.+chi2_calc_hw,sz/2.-chi2_calc_hw:sz/2.+chi2_calc_hw], stretch, im_label=label+'Residual, D - M', res=True, im_name = 'resid_sum_paper_rot_first_crop'+extn, extent=extent_crop, scale_val=np.max(tgt_sum), x_ax_label='RA Offset (")', y_ax_label='Dec Offset (")', chi_crop=True)
+        arcsinh_plot(tgt_rot_sum[sz//2-chi2_calc_hw:sz//2+chi2_calc_hw,sz//2-chi2_calc_hw:sz//2+chi2_calc_hw]-rot_conv_sum[sz//2-chi2_calc_hw:sz//2+chi2_calc_hw,sz//2-chi2_calc_hw:sz//2+chi2_calc_hw], stretch, im_label=label+'Residual, D - M', res=True, im_name = 'resid_sum_paper_rot_first_crop'+extn, extent=extent_crop, scale_val=np.max(tgt_sum), x_ax_label='RA Offset (")', y_ax_label='Dec Offset (")', chi_crop=True)
         #plot a model image only rotated by the pa
         
         #arcsinh_plot(tgt_sum/model_sum, stretch, im_label=label+'Ratio, Target/Model', im_name = 'ratio_paper'+extn, extent=extent)#, scale_val=np.max(tgt_sum))        
@@ -630,7 +630,7 @@ def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_c
         plt.text(0.6,0.6,label+'Ratio',color='black',ha='left',va='top',fontsize=23)
         plt.savefig('ratio_paper_rot_first'+extn, bbox_inches='tight')
         plt.clf()
-        plt.imshow(rot_conv_sum[sz/2.-chi2_calc_hw:sz/2.+chi2_calc_hw,sz/2.-chi2_calc_hw:sz/2.+chi2_calc_hw]/tgt_rot_sum[sz/2.-chi2_calc_hw:sz/2.+chi2_calc_hw,sz/2.-chi2_calc_hw:sz/2.+chi2_calc_hw], interpolation='nearest', extent=extent_crop, cmap=cm.PiYG, vmin=0., vmax=2.)
+        plt.imshow(rot_conv_sum[sz//2-chi2_calc_hw:sz//2+chi2_calc_hw,sz//2-chi2_calc_hw:sz//2+chi2_calc_hw]/tgt_rot_sum[sz//2-chi2_calc_hw:sz//2+chi2_calc_hw,sz//2-chi2_calc_hw:sz//2+chi2_calc_hw], interpolation='nearest', extent=extent_crop, cmap=cm.PiYG, vmin=0., vmax=2.)
         plt.xticks(fontsize=18)
         plt.yticks(fontsize=18)      
         plt.xlabel('RA Offset (")',fontsize=23)
