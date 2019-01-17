@@ -443,6 +443,7 @@ def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_c
     tgt_sum = np.zeros( (sz,sz) )
     model_sum = np.zeros( (sz,sz) )
     tgt_rot_sum = np.zeros( (sz,sz) )
+    cal_rot_sum = np.zeros( (sz,sz) )
     tgt_match_rot_sum = np.zeros( (sz,sz) )
     rot_best_model_ims = np.empty( (ntgt,sz,sz) )
     rot_residuals = np.empty( (ntgt,sz,sz) )
@@ -537,6 +538,14 @@ def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_c
                                                         sz//2 - xypeak_tgt[1], axis=1)
         tgt_shift = np.roll(np.roll(this_im, sz//2 - xypeak_tgt[0], axis=0), sz//2 - xypeak_tgt[1], axis=1)
         tgt_rot_sum += nd.interpolation.rotate(tgt_shift, pa_vert[n], reshape=False, order=1)
+        #Create a calibrator rotated sum in the same way. This is calibrator "best_conv", and
+        #we have to center it first. For simplicity, lets do it the same way as the target 
+        #(strictly only correct in the high contrast regime.
+        cal_im_raw = np.fft.irfft2(cal_ims_ft[best_conv])
+        xypeak_cal = np.unravel_index(np.argmax(cal_im_raw), cal_im_raw.shape)
+        cal_im_raw = np.roll(np.roll(cal_im_raw, sz//2 - xypeak_cal[0], axis=0), sz//2 - xypeak_cal[1], axis=1)
+        cal_rot_sum += nd.interpolation.rotate(cal_im_raw, pa_vert[n], reshape=False, order=1)
+        #!!! the following line isn't used anymore. It was to look at everything in on-ship units of the first image for testing
         tgt_match_rot_sum += nd.interpolation.rotate(tgt_shift, pa_vert[n]-pa_vert[0], reshape=False, order=1)
         #Make shifted and rotated images
         model_shift = np.roll(np.roll(best_model_ims[n], sz//2 - xypeak_tgt[0], axis=0), 
@@ -676,49 +685,51 @@ def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_c
 #             rot_ratio_sum += rot_ratios[i]
         
         #Make pickle files of the rotated (to north up) images
-        res_file = open('rot_res_ims.pkl','w')
+        res_file = open('rot_res_ims.pkl','wb')
         pickle.dump(rot_residuals,res_file)
         res_file.close()
-        rat_file = open('rot_ratios.pkl','w')
+        rat_file = open('rot_ratios.pkl','wb')
         pickle.dump(rot_ratios,rat_file)
         rat_file.close()
-        conv_file = open('rot_convs.pkl','w')
+        conv_file = open('rot_convs.pkl','wb')
         pickle.dump(rot_best_model_ims,conv_file)
         conv_file.close()
         
-        res_file = open('rot_res_sum.pkl','w')
+        res_file = open('rot_res_sum.pkl','wb')
         pickle.dump(rot_resid_sum,res_file)
         res_file.close()
-        rat_file = open('rot_ratio_sum.pkl','w')
+        rat_file = open('rot_ratio_sum.pkl','wb')
         pickle.dump(rot_ratio_sum,rat_file)
         rat_file.close()
-        conv_file = open('rot_conv_sum.pkl','w')
+        conv_file = open('rot_conv_sum.pkl','wb')
         pickle.dump(rot_conv_sum,conv_file)
         conv_file.close()
         
         #plot images with north up rot_conv_sum_paper and crop are those used for presentation
-        arcsinh_plot(rot_conv_sum, stretch, asinh_vmin=0, im_label=label+'Conv Model', \
-                     im_name='rot_conv_sum_paper'+extn, extent=extent_radec, \
-                     x_ax_label='RA Offset (")', y_ax_label='Dec Offset (")', radec=True)
-        arcsinh_plot(rot_conv_sum[sz//2-chi2_calc_hw:sz//2+chi2_calc_hw,sz//2-chi2_calc_hw:sz//2+chi2_calc_hw],\
-                     stretch, asinh_vmin=0, im_label=label+'Conv Model', \
-                     im_name='rot_conv_sum_paper_crop'+extn, extent=extent_crop, \
-                     x_ax_label='RA Offset (")', y_ax_label='Dec Offset (")', chi_crop=True)
-        arcsinh_plot(rot_resid_sum, stretch, im_label=label+'Residual, D - M', res=True, \
-                     im_name = 'rot_resid_sum_paper'+extn, extent=extent_radec, scale_val=np.max(tgt_sum),\
-                     x_ax_label='RA Offset (")', y_ax_label='Dec Offset (")', radec=True)  
-        plt.clf()
-        plt.imshow(rot_ratio_sum/ntgt, interpolation='nearest', extent=extent_radec, cmap=cm.PiYG, vmin=0., vmax=2.)
-        plt.xticks(fontsize=18)
-        plt.yticks(fontsize=18)        
-        plt.xlabel('RA Offset (")',fontsize=23)
-        plt.ylabel('Dec Offset (")',fontsize=23)
-        cbar = plt.colorbar(pad=0.0)
-        cbar.set_label('Model/Data',size=23)
-        cbar.ax.tick_params(labelsize=18)
-        plt.text(0.6,0.6,label+'Ratio',color='black',ha='left',va='top',fontsize=23)
-        plt.savefig('rot_ratio_paper'+extn, bbox_inches='tight')
-        plt.clf()
+        if plot_ims: 
+            arcsinh_plot(rot_conv_sum, stretch, asinh_vmin=0, im_label=label+'Conv Model', \
+                         im_name='rot_conv_sum_paper'+extn, extent=extent_radec, \
+                         x_ax_label='RA Offset (")', y_ax_label='Dec Offset (")', radec=True)
+            arcsinh_plot(rot_conv_sum[sz//2-chi2_calc_hw:sz//2+chi2_calc_hw,sz//2-chi2_calc_hw:sz//2+chi2_calc_hw],\
+                         stretch, asinh_vmin=0, im_label=label+'Conv Model', \
+                         im_name='rot_conv_sum_paper_crop'+extn, extent=extent_crop, \
+                         x_ax_label='RA Offset (")', y_ax_label='Dec Offset (")', chi_crop=True)
+            arcsinh_plot(rot_resid_sum, stretch, im_label=label+'Residual, D - M', res=True, \
+                         im_name = 'rot_resid_sum_paper'+extn, extent=extent_radec, scale_val=np.max(tgt_sum),\
+                         x_ax_label='RA Offset (")', y_ax_label='Dec Offset (")', radec=True)
+         
+            plt.clf()
+            plt.imshow(rot_ratio_sum/ntgt, interpolation='nearest', extent=extent_radec, cmap=cm.PiYG, vmin=0., vmax=2.)
+            plt.xticks(fontsize=18)
+            plt.yticks(fontsize=18)        
+            plt.xlabel('RA Offset (")',fontsize=23)
+            plt.ylabel('Dec Offset (")',fontsize=23)
+            cbar = plt.colorbar(pad=0.0)
+            cbar.set_label('Model/Data',size=23)
+            cbar.ax.tick_params(labelsize=18)
+            plt.text(0.6,0.6,label+'Ratio',color='black',ha='left',va='top',fontsize=23)
+            plt.savefig('rot_ratio_paper'+extn, bbox_inches='tight')
+            plt.clf()
         
         #ratio_of_sums = model_sum/tgt_sum
         #rot_ratio_of_sums = nd.interpolation.rotate(residual_shift, pa_vert[n], reshape=False, order=1)
@@ -727,45 +738,51 @@ def rotate_and_fit(im, pa_vert, pa_sky, cal_ims_ft, tgt_ims, model_type, model_c
     #Save the final image data as a pickle, so that it can be read by another code to make
     #images for a paper later
     if save_im_data:
-        tgt_file = open('tgt_sum.pkl','w')
+        tgt_file = open('tgt_sum.pkl','wb')
         pickle.dump(tgt_sum,tgt_file)
         tgt_file.close()
-        tgt_file = open('tgt_rot_sum.pkl','w')
+        tgt_file = open('tgt_rot_sum.pkl','wb')
         pickle.dump(tgt_rot_sum,tgt_file)
         tgt_file.close()
-        tgt_file = open('tgt_match_rot_sum.pkl','w')
+        tgt_file = open('cal_rot_sum.pkl','wb')
+        pickle.dump(cal_rot_sum,tgt_file)
+        tgt_file.close()
+        tgt_file = open('tgt_match_rot_sum.pkl','wb')
         pickle.dump(tgt_match_rot_sum,tgt_file)
         tgt_file.close()
-        model_file = open('model_sum.pkl','w')
+        model_file = open('model_sum.pkl','wb')
         pickle.dump(model_sum,model_file)
         model_file.close()
         res_sum = tgt_sum-model_sum
-        res_file = open('res_sum.pkl','w')
+        res_file = open('res_sum.pkl','wb')
         pickle.dump(res_sum,res_file)
         res_file.close()
-        rot_mod_file = open('rot_mod.pkl','w')
+        rot_mod_file = open('rot_mod.pkl','wb')
         pickle.dump(rotated_image,rot_mod_file)
         rot_mod_file.close()
         #also make pickles of the not summed images to be able to work with them later
-        tgt_file = open('tgt_ims.pkl','w')
+        tgt_file = open('tgt_ims.pkl','wb')
         pickle.dump(tgt_ims,tgt_file)
         tgt_file.close()
-        model_file = open('model_ims.pkl','w')
+        model_file = open('model_ims.pkl','wb')
         pickle.dump(best_model_ims,model_file)
         model_file.close()
-        rot_file = open('single_rot_mod.pkl','w')
-        pickle.dump(rot_model,rot_file)
-        rot_file.close()
+        
+        #!!! This doesn't exist.
+        #rot_file = open('single_rot_mod.pkl','wb')
+        #pickle.dump(rot_model,rot_file)
+        #rot_file.close()
         
         #res_ims = []
         #for i in range(ntgt):
         #    r = tgt_ims[i] - best_model_ims[i]
         #    res_ims.append(r)
         #res_ims = np.asarray(res_ims)
-        res_file = open('res_ims.pkl','w')
+        
+        res_file = open('res_ims.pkl','wb')
         pickle.dump(residual_ims,res_file)
         res_file.close()
-        rat_file = open('ratio_ims.pkl','w')
+        rat_file = open('ratio_ims.pkl','wb')
         pickle.dump(ratio_ims,rat_file)
         rat_file.close()
         #rot_mod_file = open('rot_mod.pkl','w')

@@ -1,2 +1,2 @@
-from lnprob_radmc3d import *
-import imtools
+from .lnprob_radmc3d import *
+from . import imtools

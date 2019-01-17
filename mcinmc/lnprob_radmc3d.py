@@ -32,7 +32,7 @@ import astropy.io.fits as pyfits
 import pdb
 import os
 import shutil
-from imtools import *
+from .imtools import *
 import pickle
 #import time
 import multiprocessing
