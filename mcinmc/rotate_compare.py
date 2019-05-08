@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 matplotlib.rcParams['pdf.fonttype'] = 42
 matplotlib.rcParams['ps.fonttype'] = 42
-#import radmc3dPy as r3
+import radmc3dPy as r3
 import astropy.io.fits as pyfits
 #import opticstools as ot
 #import pdb
@@ -407,16 +407,10 @@ def lnprob_conv_disk_radmc3d(temperature=10000.0, filename='good_ims.fits',nphot
                plot_ims=plot_ims,save_im_data=save_im_data,paper_ims=paper_ims,\
                label=label, bgnd=background, filename=filename)
     
-    #This is "cd .."
-    os.chdir(os.pardir)
-                    
-    #This line needs to be edited to reflect the result when not using the full image to 
-    #calculate the chi^2
-    print("*** Computed chi-squared {0:7.1f}  ***".format(chi_tot/np.prod(target_ims.shape)))
-    
     #Return log likelihood
     lnlike = -1*(0.5*chi_tot/temperature) 
     print("*** Computed log likelihood {0:7.1f}  ***".format(lnlike))
+    print("*** Computed chi-squared {0:7.1f}  ***".format(-1*lnlike/80./80./(tgt_ims.shape[0])*2*temperature))
         
     return lnlike
 
